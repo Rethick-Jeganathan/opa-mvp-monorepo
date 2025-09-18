@@ -32,3 +32,39 @@ Status: In Progress
 - Install deps and run MCP Server: `npm install` then `npm --workspace apps/mcp-server run dev`.
 - Verify endpoints: `/healthz`, `/context/aws/accounts`, `/context/aws/<acct>/tags`.
 - (Optional) Install Minikube + Gatekeeper and apply provided constraints.
+
+## Verification Outputs (2025-09-17 23:45 -05:00)
+- docker compose: `redis` running; `localstack` running (healthy). No errors.
+- MCP Server:
+  - GET `http://localhost:4001/healthz` -> `{ "status": "ok", "redis": "ok" }`
+  - GET `http://localhost:4001/context/aws/accounts` -> `{ "accounts": ["111111111111","222222222222"] }`
+  - GET `http://localhost:4001/context/aws/111111111111/tags` -> `{ "account": "111111111111", "tags": {"owner":"mvp","env":"dev"}, "ttlSeconds": 60 }`
+- OPA bundle (local, via Docker):
+  - `docker run ... openpolicyagent/opa:latest build -b policy -o policy-bundle.tar.gz` -> SUCCESS
+
+## Fixes Applied
+- Migrated Rego policies to Rego v1 syntax to resolve CI parse errors:
+  - `policy/opa/terraform/s3_acl_public.rego`
+  - `policy/opa/terraform/s3_encryption.rego`
+- Cleared docker compose warning by removing obsolete `version` field in `docker-compose.yml`.
+
+## CI Status
+- Initial runs failed at "Build bundle" step due to Rego v1 parse errors.
+- After the fixes above, the bundle builds locally. Next: commit and push to `main` to re-run the
+  workflow and produce the `policy-bundle` artifact.
+
+## Commands to Commit and Trigger CI
+```powershell
+# from repo root: c:\\Users\\Rethick\\OPA_Project\\opa-mvp-monorepo
+git add policy/opa/terraform/*.rego docker-compose.yml docs/scratchpads/week1.md
+git commit -m "fix: Rego v1 compatibility for Terraform policies; remove compose version; add week1 verification"
+git push origin main
+```
+
+## Gatekeeper Validation (Pending for Week 1 acceptance)
+Run through `docs/minikube-gatekeeper-setup.md`, then apply:
+```powershell
+kubectl apply -f policy/gatekeeper/constrainttemplates/
+kubectl apply -f policy/gatekeeper/constraints/
+```
+Test with a workload using `:latest` and/or missing required labels to confirm denial.
