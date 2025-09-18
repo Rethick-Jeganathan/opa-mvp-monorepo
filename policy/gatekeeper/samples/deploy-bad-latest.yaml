@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-bad-latest
+  labels:
+    owner: mvp
+    env: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-bad
+  template:
+    metadata:
+      labels:
+        app: nginx-bad
+        owner: mvp
+        env: dev
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest # should be denied by no_latest_image constraint

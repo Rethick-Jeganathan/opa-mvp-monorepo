@@ -50,8 +50,10 @@ Status: In Progress
 
 ## CI Status
 - Initial runs failed at "Build bundle" step due to Rego v1 parse errors.
-- After the fixes above, the bundle builds locally. Next: commit and push to `main` to re-run the
-  workflow and produce the `policy-bundle` artifact.
+- After fixes, a new run on `main` succeeded.
+  - Run: `Build Policy Bundles` #3 (event: push) — SUCCESS
+  - Artifact: `policy-bundle` (size ~745 bytes)
+  - Head SHA: `31c1fab` (fix: Rego v1, compose warning, week1 verification)
 
 ## Commands to Commit and Trigger CI
 ```powershell

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bad-ns
+  labels:
+    owner: mvp
+    # env label intentionally missing to trigger required labels constraint
