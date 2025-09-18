@@ -1,0 +1,54 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: nolatestimage
+spec:
+  crd:
+    spec:
+      names:
+        kind: NoLatestImage
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package nolatestimage
+
+        images[obj] {
+          obj := input.review.object
+        }
+
+        # Collect all container image strings
+        img[image] {
+          images[obj]
+          image := obj.spec.containers[_].image
+        }
+        img[image] {
+          images[obj]
+          image := obj.spec.template.spec.containers[_].image
+        }
+        img[image] {
+          images[obj]
+          image := obj.spec.initContainers[_].image
+        }
+        img[image] {
+          images[obj]
+          image := obj.spec.template.spec.initContainers[_].image
+        }
+
+        violation[{"msg": msg, "details": {"image": image}}] {
+          image := img[_]
+          not digest(image)
+          (no_tag(image) or latest_tag(image))
+          msg := sprintf("container image uses disallowed tag (latest or none): %s", [image])
+        }
+
+        digest(image) {
+          re_match("@sha256:[a-f0-9]{64}$", image)
+        }
+
+        no_tag(image) {
+          re_match("^[^@:]+(?:/[^@:]+)*$", image)
+        }
+
+        latest_tag(image) {
+          re_match(".*:(?i)latest$", image)
+        }

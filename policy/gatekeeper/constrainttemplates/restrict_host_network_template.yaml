@@ -1,0 +1,28 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: restricthostnetwork
+spec:
+  crd:
+    spec:
+      names:
+        kind: RestrictHostNetwork
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package restricthostnetwork
+
+        violation[{"msg": msg}] {
+          obj := input.review.object
+          host_net(obj)
+          msg := "hostNetwork must be false"
+        }
+
+        host_net(obj) {
+          obj.kind == "Pod"
+          obj.spec.hostNetwork == true
+        }
+
+        host_net(obj) {
+          obj.spec.template.spec.hostNetwork == true
+        }

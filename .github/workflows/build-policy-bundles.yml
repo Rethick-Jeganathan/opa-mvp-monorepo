@@ -1,0 +1,31 @@
+name: Build Policy Bundles
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'policy/**'
+      - '.github/workflows/build-policy-bundles.yml'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+          chmod +x opa
+          ./opa version
+
+      - name: Build bundle
+        run: ./opa build -b policy -o policy-bundle.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-bundle
+          path: policy-bundle.tar.gz

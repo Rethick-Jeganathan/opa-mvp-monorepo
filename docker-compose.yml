@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  localstack:
+    image: localstack/localstack:stable
+    environment:
+      - SERVICES=s3,sts,iam
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+    ports:
+      - '4566:4566'
+    volumes:
+      - localstack-data:/var/lib/localstack
+
+volumes:
+  localstack-data:
