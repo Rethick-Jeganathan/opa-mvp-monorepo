@@ -8,6 +8,9 @@
   "scripts": {
     "build": "npm -ws run build",
     "dev": "npm -w apps/mcp-server run dev",
-    "start": "npm -w apps/mcp-server start"
+    "start": "npm -w apps/mcp-server start",
+    "dev:ui": "npm -w apps/ui run dev",
+    "build:ui": "npm -w apps/ui run build",
+    "start:ui": "npm -w apps/ui run start"
   }
 }

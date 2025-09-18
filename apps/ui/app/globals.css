@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b1020;
+  --card: #11162a;
+  --text: #e5e7eb;
+  --accent: #22d3ee;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(180deg, #0b1020 0%, #0e1733 100%);
+  color: var(--text);
+}
+
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.card {
+  @apply rounded-xl p-5 shadow-lg;
+  background: radial-gradient(120% 120% at 0% 0%, #1b2342 0%, #0e1733 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.badge {
+  @apply inline-flex items-center rounded-md px-2 py-1 text-xs font-medium;
+}
+
+.badge-ok {
+  @apply bg-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-500/30;
+}
+
+.badge-warn {
+  @apply bg-amber-500/10 text-amber-300 ring-1 ring-inset ring-amber-500/30;
+}
+
+.badge-err {
+  @apply bg-rose-500/10 text-rose-300 ring-1 ring-inset ring-rose-500/30;
+}
