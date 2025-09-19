@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: provider-system
+  name: demo
   labels:
     owner: mvp
-    env: dev
+    env: prod

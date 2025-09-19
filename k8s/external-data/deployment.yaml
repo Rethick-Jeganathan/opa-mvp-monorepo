@@ -5,6 +5,8 @@ metadata:
   namespace: provider-system
   labels:
     app: external-data
+    owner: mvp
+    env: dev
 spec:
   replicas: 1
   selector:
@@ -14,13 +16,16 @@ spec:
     metadata:
       labels:
         app: external-data
+        owner: mvp
+        env: dev
     spec:
       containers:
         - name: external-data
-          image: external-data:dev
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/external-data:week2-1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
+            - containerPort: 8443
           readinessProbe:
             httpGet:
               path: /healthz

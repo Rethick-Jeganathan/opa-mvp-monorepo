@@ -21,9 +21,10 @@ spec:
           results := external_data({"provider": "ns-env-provider", "keys": [name]})
 
           some i
-          results[i][0] == name
-          want := results[i][1]           # expected env from provider
-          err  := results[i][2]
+          r := results[i]
+          r.key == name
+          want := r.value                  # expected env from provider
+          err  := r.error
 
           err == ""
           want != ""
@@ -33,3 +34,20 @@ spec:
 
           msg := sprintf("namespace %q env label %q does not match external mapping %q", [name, provided, want])
         }
+
+         # Fail-close if the provider call fails or returns no mapping
+         violation[{"msg": msg}] {
+           input.review.kind.kind == "Namespace"
+           name := input.review.object.metadata.name
+           results := external_data({"provider": "ns-env-provider", "keys": [name]})
+
+           # No entry for the namespace in results
+           not any_result_for_name(results, name)
+           msg := sprintf("external data missing or unreachable for namespace %q", [name])
+         }
+
+         # helper: check if any result exists for the given name
+         any_result_for_name(results, name) {
+           some i
+           results[i].key == name
+         }

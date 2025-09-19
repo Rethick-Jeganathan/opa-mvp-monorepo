@@ -14,6 +14,7 @@ const NS_ENV: Record<string, string> = {
   dev: 'dev',
   prod: 'prod',
   prod2: 'prod',
+  prod3: 'prod',
 };
 
 app.get('/healthz', (_req, res) => {
@@ -64,7 +65,12 @@ function generateCAandServerCert() {
         { type: 2, value: 'host.minikube.internal' },
         { type: 2, value: 'host.docker.internal' },
         { type: 2, value: 'localhost' },
-        { type: 7, ip: '127.0.0.1' }
+        { type: 7, ip: '127.0.0.1' },
+        // In-cluster DNS names for the Service
+        { type: 2, value: 'external-data' },
+        { type: 2, value: 'external-data.provider-system' },
+        { type: 2, value: 'external-data.provider-system.svc' },
+        { type: 2, value: 'external-data.provider-system.svc.cluster.local' }
       ]
     }
   ]);
