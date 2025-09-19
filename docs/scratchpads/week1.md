@@ -2,7 +2,7 @@
 
 Start: 2025-09-11 15:27 -05:00
 
-Status: In Progress
+Status: Completed
 
 ## Today’s Log
 - Initialized Week 1 execution. Creating repo scaffolding, docker-compose, and MCP Server stub.
@@ -55,18 +55,55 @@ Status: In Progress
   - Artifact: `policy-bundle` (size ~745 bytes)
   - Head SHA: `31c1fab` (fix: Rego v1, compose warning, week1 verification)
 
+### GHCR Publish (Week-1 Exit Gate)
+- Ref: `oci://ghcr.io/rethick-jeganathan/opa-mvp-monorepo/opa-bundles:main-5`
+- Digest (manifest): `sha256:3f406f9b50a6dc1d268057098ec655bde0abaa52ed3130c88cef1fe53f1c5dba`
+- Workflow Run: https://github.com/Rethick-Jeganathan/opa-mvp-monorepo/actions/runs/17843429614
+- Pulling guidance (immutability): Consumers should pull by digest (e.g., `<ref>@<digest>`) to pin the exact bundle version.
+
 ## Commands to Commit and Trigger CI
 ```powershell
-# from repo root: c:\\Users\\Rethick\\OPA_Project\\opa-mvp-monorepo
 git add policy/opa/terraform/*.rego docker-compose.yml docs/scratchpads/week1.md
 git commit -m "fix: Rego v1 compatibility for Terraform policies; remove compose version; add week1 verification"
 git push origin main
 ```
 
-## Gatekeeper Validation (Pending for Week 1 acceptance)
-Run through `docs/minikube-gatekeeper-setup.md`, then apply:
-```powershell
-kubectl apply -f policy/gatekeeper/constrainttemplates/
-kubectl apply -f policy/gatekeeper/constraints/
-```
-Test with a workload using `:latest` and/or missing required labels to confirm denial.
+## UI Verification (2025-09-18)
+- UI started: `npm run dev:ui` → http://localhost:3000
+- API probe: GET `/api/system-status` → MCP ok, Redis ok, LocalStack ok
+- Pages available:
+  - `/` Overview (status, quick links, getting started)
+  - `/mcp` Account explorer; `/mcp/[account]` shows tags via MCP
+  - `/gatekeeper` Setup & validation guide
+
+## Minikube + Gatekeeper Validation Results (2025-09-18)
+- Minikube installed (user bin) and started with Docker driver: v1.37.0
+- Gatekeeper installed; controller rollout: successful
+- Fixed `nolatestimage` ConstraintTemplate parse error; CRD established
+- Constraints applied:
+  - `required-labels` (K8sRequiredLabels)
+  - `disallow-latest-tag` (NoLatestImage)
+  - `restrict-hostnetwork` (RestrictHostNetwork)
+- Sample validations:
+  - Apply `ns-demo.yaml` → ALLOWED (namespace/demo created)
+  - Apply `ns-bad.yaml` → DENIED
+    - message: `[required-labels] missing required labels: {"env"}`
+  - Apply `deploy-bad-latest.yaml` → DENIED
+    - message: `[disallow-latest-tag] container image uses disallowed tag (latest or none): nginx:latest`
+
+All Week 1 acceptance criteria satisfied.
+
+## Environment Notes (Version Drift)
+- kubectl client: v1.32.2 (Windows); Minikube cluster: v1.34.0 APIs
+- Mitigation (Week‑2): use `minikube kubectl -- <cmd>` for cluster ops or update kubectl to v1.34.x.
+
+## Week‑1 Final Sign‑off
+- Completion audit: Monorepo scaffold — Met
+- docker-compose (Redis + LocalStack) — Met
+- MCP Server stub (/healthz, context) — Met
+- Gatekeeper CTs + Constraints installed and enforced — Met
+- Terraform policies migrated to Rego v1 — Met
+- CI builds bundle and publishes to GHCR with digest — Met
+- UI (Next.js) online with status, MCP explorer, Gatekeeper guide — Met
+
+Week‑1: Done ✅

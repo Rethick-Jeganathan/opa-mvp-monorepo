@@ -1,0 +1,35 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: nsenvmatch
+spec:
+  crd:
+    spec:
+      names:
+        kind: NsEnvMatch
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package nsenvmatch
+
+        # Require that Namespace label `env` matches external mapping from provider
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Namespace"
+          name := input.review.object.metadata.name
+
+          # call the provider with the namespace name as key
+          results := external_data({"provider": "ns-env-provider", "keys": [name]})
+
+          some i
+          results[i][0] == name
+          want := results[i][1]           # expected env from provider
+          err  := results[i][2]
+
+          err == ""
+          want != ""
+
+          provided := input.review.object.metadata.labels.env
+          provided != want
+
+          msg := sprintf("namespace %q env label %q does not match external mapping %q", [name, provided, want])
+        }

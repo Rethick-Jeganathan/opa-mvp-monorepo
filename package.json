@@ -11,6 +11,9 @@
     "start": "npm -w apps/mcp-server start",
     "dev:ui": "npm -w apps/ui run dev",
     "build:ui": "npm -w apps/ui run build",
-    "start:ui": "npm -w apps/ui run start"
+    "start:ui": "npm -w apps/ui run start",
+    "dev:edp": "npm -w apps/external-data run dev",
+    "build:edp": "npm -w apps/external-data run build",
+    "start:edp": "npm -w apps/external-data run start"
   }
 }

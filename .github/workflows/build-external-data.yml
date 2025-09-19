@@ -1,0 +1,60 @@
+name: Build External Data Image
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/external-data/**'
+      - '.github/workflows/build-external-data.yml'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image ref
+        id: vars
+        run: |
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO="${{ github.event.repository.name }}"
+          TAG="week2-${{ github.run_number }}"
+          REF="ghcr.io/${OWNER_LOWER}/${REPO}/external-data:${TAG}"
+          echo "owner=${OWNER_LOWER}" >> $GITHUB_OUTPUT
+          echo "repo=${REPO}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "ref=${REF}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/external-data
+          file: ./apps/external-data/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.vars.outputs.ref }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/${{ steps.vars.outputs.repo }}/external-data:latest
+
+      - name: Summary
+        run: |
+          echo "### External Data Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "- Ref: ${{ steps.vars.outputs.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tag: ${{ steps.vars.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Digest: ${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY

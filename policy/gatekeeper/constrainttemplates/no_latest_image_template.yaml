@@ -34,10 +34,18 @@ spec:
           image := obj.spec.template.spec.initContainers[_].image
         }
 
+        # Helper to avoid inline OR parsing issues
+        disallowed(image) {
+          no_tag(image)
+        }
+        disallowed(image) {
+          latest_tag(image)
+        }
+
         violation[{"msg": msg, "details": {"image": image}}] {
           image := img[_]
           not digest(image)
-          (no_tag(image) or latest_tag(image))
+          disallowed(image)
           msg := sprintf("container image uses disallowed tag (latest or none): %s", [image])
         }
 
