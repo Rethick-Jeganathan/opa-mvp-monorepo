@@ -21,10 +21,9 @@ spec:
           results := external_data({"provider": "ns-env-provider", "keys": [name]})
 
           some i
-          r := results[i]
-          r.key == name
-          want := r.value                  # expected env from provider
-          err  := r.error
+          results[i][0] == name
+          want := results[i][1]           # expected env from provider
+          err  := results[i][2]
 
           err == ""
           want != ""
@@ -49,5 +48,5 @@ spec:
          # helper: check if any result exists for the given name
          any_result_for_name(results, name) {
            some i
-           results[i].key == name
+           results[i][0] == name
          }

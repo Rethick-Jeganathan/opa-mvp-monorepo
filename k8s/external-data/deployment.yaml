@@ -21,11 +21,15 @@ spec:
     spec:
       containers:
         - name: external-data
-          image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/external-data:week2-1
+          image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/external-data:week2-2
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
             - containerPort: 8443
+          volumeMounts:
+            - name: edp-tls
+              mountPath: /tls
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /healthz
@@ -45,3 +49,8 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+      volumes:
+        - name: edp-tls
+          secret:
+            secretName: edp-tls
+            optional: false

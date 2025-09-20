@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import https from 'https';
 import forge from 'node-forge';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.use(cors());
@@ -81,7 +83,26 @@ function generateCAandServerCert() {
   SERVER_KEY_PEM = pki.privateKeyToPem(serverKeys.privateKey);
 }
 
-generateCAandServerCert();
+function loadTLSFromSecretOrGenerate() {
+  try {
+    const tlsDir = '/tls';
+    const caPath = path.join(tlsDir, 'ca.crt');
+    const certPath = path.join(tlsDir, 'tls.crt');
+    const keyPath = path.join(tlsDir, 'tls.key');
+    if (fs.existsSync(caPath) && fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+      CA_CERT_PEM = fs.readFileSync(caPath, 'utf8');
+      SERVER_CERT_PEM = fs.readFileSync(certPath, 'utf8');
+      SERVER_KEY_PEM = fs.readFileSync(keyPath, 'utf8');
+      console.log('Loaded TLS materials from /tls secret.');
+      return;
+    }
+  } catch (e) {
+    console.warn('Failed loading /tls secret, falling back to generated certs:', e);
+  }
+  generateCAandServerCert();
+}
+
+loadTLSFromSecretOrGenerate();
 
 // Expose the CA certificate for Provider caBundle wiring (MVP only)
 app.get('/ca', (_req, res) => {
