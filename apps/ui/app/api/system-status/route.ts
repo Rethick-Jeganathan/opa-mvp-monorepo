@@ -12,12 +12,13 @@ async function fetchWithTimeout(url: string, ms = 1500): Promise<Response> {
 }
 
 export async function GET() {
+  const MCP_BASE = process.env.MCP_URL || "http://localhost:9200";
   // MCP health
   let mcpStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
   let mcpRedis: "ok" | "warn" | "err" | "unknown" = "unknown";
   let mcpError = "";
   try {
-    const res = await fetchWithTimeout("http://localhost:4001/healthz", 1500);
+    const res = await fetchWithTimeout(`${MCP_BASE}/healthz`, 1500);
     if (res.ok) {
       const j = await res.json();
       mcpStatus = j?.status === "ok" ? "ok" : "warn";

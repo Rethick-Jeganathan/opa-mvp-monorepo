@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = parseInt(process.env.PORT || '4001', 10);
+const PORT = parseInt(process.env.PORT || '9200', 10);
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
 const redis = new Redis(REDIS_URL);

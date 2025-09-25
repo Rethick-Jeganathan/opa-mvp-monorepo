@@ -9,8 +9,8 @@ metadata:
     env: dev
 spec:
   ports:
-    - port: 4001
-      targetPort: 4001
+    - port: 9200
+      targetPort: 9200
   selector:
     app: mcp-server
 ---
@@ -40,10 +40,12 @@ spec:
           image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/mcp-server:week2
           imagePullPolicy: Always
           ports:
-            - containerPort: 4001
+            - containerPort: 9200
           env:
             - name: REDIS_URL
               value: redis://redis.provider-system.svc:6379
+            - name: PORT
+              value: "9200"
             - name: MCP_ACCOUNTS
               value: "111111111111,222222222222"
             - name: NS_ENV_TTL_SECONDS
@@ -53,13 +55,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 4001
+              port: 9200
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 4001
+              port: 9200
             initialDelaySeconds: 3
             periodSeconds: 10
           resources:

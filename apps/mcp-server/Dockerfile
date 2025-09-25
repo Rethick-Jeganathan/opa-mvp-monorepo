@@ -17,5 +17,5 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-EXPOSE 4001
+EXPOSE 9200
 CMD ["node", "dist/index.js"]

@@ -19,7 +19,7 @@ const NS_ENV: Record<string, string> = {
   prod3: 'prod',
 };
 
-const MCP_URL = process.env.MCP_URL || 'http://mcp-server.provider-system.svc:4001';
+const MCP_URL = process.env.MCP_URL || 'http://mcp-server.provider-system.svc:9200';
 
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', provider: 'mvp-external-data', keys: Object.keys(NS_ENV).length });
