@@ -26,6 +26,9 @@ spec:
           ports:
             - containerPort: 8080
             - containerPort: 8443
+          env:
+            - name: MCP_URL
+              value: http://mcp-server.provider-system.svc:4001
           volumeMounts:
             - name: edp-tls
               mountPath: /tls

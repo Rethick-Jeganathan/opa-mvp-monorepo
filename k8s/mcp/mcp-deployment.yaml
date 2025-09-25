@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-server
+  namespace: provider-system
+  labels:
+    app: mcp-server
+    owner: mvp
+    env: dev
+spec:
+  ports:
+    - port: 4001
+      targetPort: 4001
+  selector:
+    app: mcp-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server
+  namespace: provider-system
+  labels:
+    app: mcp-server
+    owner: mvp
+    env: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-server
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+        owner: mvp
+        env: dev
+    spec:
+      containers:
+        - name: mcp-server
+          image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/mcp-server:week2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4001
+          env:
+            - name: REDIS_URL
+              value: redis://redis.provider-system.svc:6379
+            - name: MCP_ACCOUNTS
+              value: "111111111111,222222222222"
+            - name: NS_ENV_TTL_SECONDS
+              value: "300"
+            - name: NS_ENV_MAP_JSON
+              value: '{"demo":"dev","dev":"dev","prod":"prod","prod2":"prod","prod3":"prod"}'
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 4001
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 4001
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

@@ -93,14 +93,14 @@ Planned dates assume a start the week of 2025-09-15.
 ## Work Breakdown Structure (Trackable)
 
 ### Week 1 — Foundations and Scaffolding (2025-09-15 → 2025-09-19)
-- [ ] Initialize monorepo structure and tooling
-- [ ] Set up Minikube + install Gatekeeper
+- [x] Initialize monorepo structure and tooling
+- [x] Set up Minikube + install Gatekeeper
 - [ ] Stand up LocalStack for AWS API emulation
 - [ ] Deploy single-instance Redis (local or in-cluster)
 - [ ] Implement MCP Server stub (`/healthz`, hardcoded context) + Redis hook
-- [ ] Add baseline Gatekeeper policies: required labels, forbid `:latest`, restrict host networking
-- [ ] Seed Terraform Rego rules: S3 must be encrypted; deny public ACL
-- [ ] Configure GitHub Actions to `opa build` and publish bundles to `ghcr.io`
+- [x] Add baseline Gatekeeper policies: required labels, forbid `:latest`, restrict host networking
+- [x] Seed Terraform Rego rules: S3 must be encrypted; deny public ACL
+- [x] Configure GitHub Actions to `opa build` and publish bundles to `ghcr.io`
 
 Deliverables:
 - Running Minikube with Gatekeeper pods healthy
@@ -111,10 +111,10 @@ Dependencies:
 - Docker, Minikube, GitHub access, GHCR permissions
 
 ### Week 2 — External Data + UI Skeleton (2025-09-22 → 2025-09-26)
-- [ ] Implement External Data Provider per `externaldata.gatekeeper.sh`
+- [x] Implement External Data Provider per `externaldata.gatekeeper.sh`
 - [ ] Provider queries MCP Server, returns `{ items[{key,value,ttl}] }`
-- [ ] Wire a constraint using external data (e.g., namespace -> environment mapping)
-- [ ] Scaffold Next.js + Tailwind; create pages shell and navigation
+- [x] Wire a constraint using external data (e.g., namespace -> environment mapping)
+- [x] Scaffold Next.js + Tailwind; create pages shell and navigation
 - [ ] Kubernetes read-only lists via API proxy (namespaces/deployments/pods)
 - [ ] Dashboard health checks; Decisions table backed by SQLite (seed ok)
 

@@ -9,8 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Minimal in-memory mapping (MVP): namespace -> required env
-// In Week-3/4, replace with MCP lookups and/or DB
+// Minimal in-memory mapping (fallback): namespace -> required env
+// Primary source is MCP server (MVP Week 2)
 const NS_ENV: Record<string, string> = {
   demo: 'dev',
   dev: 'dev',
@@ -18,6 +18,8 @@ const NS_ENV: Record<string, string> = {
   prod2: 'prod',
   prod3: 'prod',
 };
+
+const MCP_URL = process.env.MCP_URL || 'http://mcp-server.provider-system.svc:4001';
 
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', provider: 'mvp-external-data', keys: Object.keys(NS_ENV).length });
@@ -114,14 +116,30 @@ app.get('/ca', (_req, res) => {
 // POST /lookup
 // Body: { apiVersion, kind, request: { keys: [] } }
 // Response: { apiVersion, kind, response: { idempotent?, items: [{key, value, error}], systemError? } }
-app.post('/lookup', (req, res) => {
+app.post('/lookup', async (req, res) => {
   const body = req.body || {};
   const keys: string[] = body?.request?.keys ?? [];
 
-  const items = keys.map((k) => {
-    const v = NS_ENV[k];
-    return { key: k, value: v ?? '', error: '' };
-  });
+  async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
+    // Try MCP first with a short timeout; fall back to in-memory map
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 1500);
+    try {
+      const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!resp.ok) throw new Error(`http_${resp.status}`);
+      const j: any = await resp.json();
+      const v = (j && typeof j.value === 'string') ? j.value : '';
+      return { key: name, value: v, error: '' };
+    } catch (_e) {
+      clearTimeout(t);
+      const v = NS_ENV[name] ?? '';
+      // If fallback used, keep error empty so policy can still evaluate
+      return { key: name, value: v, error: '' };
+    }
+  }
+
+  const items = await Promise.all(keys.map((k) => fetchNsEnv(k)));
 
   const resp = {
     apiVersion: 'externaldata.gatekeeper.sh/v1beta1',

@@ -25,7 +25,7 @@ redis.on('connect', () => {
 app.get('/healthz', async (_req: Request, res: Response) => {
   try {
     const pong = await redis.ping();
-    res.json({ status: 'ok', redis: pong === 'PONG' ? 'ok' : 'unreachable' });
+    return res.json({ status: 'ok', redis: pong === 'PONG' ? 'ok' : 'unreachable' });
   } catch (e) {
     res.status(500).json({ status: 'degraded', error: String(e) });
   }
@@ -34,7 +34,7 @@ app.get('/healthz', async (_req: Request, res: Response) => {
 app.get('/cache/stats', async (_req: Request, res: Response) => {
   try {
     const info = await redis.info('stats');
-    res.type('application/json').send(JSON.stringify({ info }));
+    res.type('application/json').send(JSON.stringify({ info: info }));
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }
@@ -54,7 +54,6 @@ app.get('/context/aws/:account/tags', async (req: Request, res: Response) => {
   const { account } = req.params;
   const defaultTags = process.env.MCP_DEFAULT_TAGS_JSON || '{"owner":"mvp","env":"dev"}';
   try {
-    // In Week 2+, fetch from AWS/LocalStack with caching. For now, cache and return defaults.
     const cacheKey = `acct:${account}:tags`;
     let tagsStr = await redis.get(cacheKey);
     if (!tagsStr) {
@@ -63,6 +62,28 @@ app.get('/context/aws/:account/tags', async (req: Request, res: Response) => {
     }
     const tags = JSON.parse(tagsStr);
     res.json({ account, tags, ttlSeconds: 60 });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// Namespace -> env mapping for Gatekeeper External Data Provider
+// Defaults come from NS_ENV_MAP_JSON env (e.g., {"demo":"dev","prod3":"prod"})
+app.get('/k8s/ns-env/:name', async (req: Request, res: Response) => {
+  const { name } = req.params;
+  const ttl = parseInt(process.env.NS_ENV_TTL_SECONDS || '300', 10);
+  const defaultsJson = process.env.NS_ENV_MAP_JSON || '{"demo":"dev","dev":"dev","prod":"prod","prod2":"prod","prod3":"prod"}';
+  try {
+    const defaults = JSON.parse(defaultsJson) as Record<string, string>;
+    const cacheKey = `nsenv:${name}`;
+    let v = await redis.get(cacheKey);
+    if (!v) {
+      const mapped = defaults[name] || '';
+      // Cache even empty string briefly to avoid thundering herd
+      await redis.set(cacheKey, mapped, 'EX', ttl);
+      v = mapped;
+    }
+    res.json({ key: name, value: v, ttlSeconds: ttl });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

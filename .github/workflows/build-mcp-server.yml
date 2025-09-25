@@ -1,11 +1,11 @@
-name: Build External Data Image
+name: Build MCP Server Image
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'apps/external-data/**'
-      - '.github/workflows/build-external-data.yml'
+      - 'apps/mcp-server/**'
+      - '.github/workflows/build-mcp-server.yml'
   workflow_dispatch: {}
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           REPO="${{ github.event.repository.name }}"
           TAG="week2-${{ github.run_number }}"
-          REF="ghcr.io/${OWNER_LOWER}/${REPO}/external-data:${TAG}"
+          REF="ghcr.io/${OWNER_LOWER}/${REPO}/mcp-server:${TAG}"
           echo "owner=${OWNER_LOWER}" >> $GITHUB_OUTPUT
           echo "repo=${REPO}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
@@ -44,17 +44,17 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/external-data
-          file: ./apps/external-data/Dockerfile
+          context: ./apps/mcp-server
+          file: ./apps/mcp-server/Dockerfile
           push: true
           tags: |
             ${{ steps.vars.outputs.ref }}
-            ghcr.io/${{ steps.vars.outputs.owner }}/${{ steps.vars.outputs.repo }}/external-data:latest
-            ghcr.io/${{ steps.vars.outputs.owner }}/${{ steps.vars.outputs.repo }}/external-data:week2
+            ghcr.io/${{ steps.vars.outputs.owner }}/${{ steps.vars.outputs.repo }}/mcp-server:latest
+            ghcr.io/${{ steps.vars.outputs.owner }}/${{ steps.vars.outputs.repo }}/mcp-server:week2
 
       - name: Summary
         run: |
-          echo "### External Data Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "### MCP Server Image Published" >> $GITHUB_STEP_SUMMARY
           echo "- Ref: ${{ steps.vars.outputs.ref }}" >> $GITHUB_STEP_SUMMARY
           echo "- Tag: ${{ steps.vars.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "- Digest: ${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
