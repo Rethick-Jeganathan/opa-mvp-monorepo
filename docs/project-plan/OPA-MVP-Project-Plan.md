@@ -2,7 +2,7 @@
 
 Version: 0.1
 
-Last Updated: 2025-09-11 15:21 -05:00
+Last Updated: 2025-09-25 14:23 -05:00
 
 Owner(s): TBD
 
@@ -95,9 +95,9 @@ Planned dates assume a start the week of 2025-09-15.
 ### Week 1 — Foundations and Scaffolding (2025-09-15 → 2025-09-19)
 - [x] Initialize monorepo structure and tooling
 - [x] Set up Minikube + install Gatekeeper
-- [ ] Stand up LocalStack for AWS API emulation
-- [ ] Deploy single-instance Redis (local or in-cluster)
-- [ ] Implement MCP Server stub (`/healthz`, hardcoded context) + Redis hook
+- [x] Stand up LocalStack for AWS API emulation
+- [x] Deploy single-instance Redis (local or in-cluster)
+- [x] Implement MCP Server stub (`/healthz`, hardcoded context) + Redis hook
 - [x] Add baseline Gatekeeper policies: required labels, forbid `:latest`, restrict host networking
 - [x] Seed Terraform Rego rules: S3 must be encrypted; deny public ACL
 - [x] Configure GitHub Actions to `opa build` and publish bundles to `ghcr.io`
@@ -115,7 +115,7 @@ Dependencies:
 - [ ] Provider queries MCP Server, returns `{ items[{key,value,ttl}] }`
 - [x] Wire a constraint using external data (e.g., namespace -> environment mapping)
 - [x] Scaffold Next.js + Tailwind; create pages shell and navigation
-- [ ] Kubernetes read-only lists via API proxy (namespaces/deployments/pods)
+- [x] Kubernetes read-only lists via API proxy (namespaces/deployments/pods)
 - [ ] Dashboard health checks; Decisions table backed by SQLite (seed ok)
 
 Deliverables:

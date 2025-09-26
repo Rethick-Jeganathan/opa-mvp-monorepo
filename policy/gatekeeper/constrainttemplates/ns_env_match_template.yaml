@@ -12,6 +12,28 @@ spec:
       rego: |
         package nsenvmatch
 
+        # Normalize external_data result item to fields
+        get_key(r) = k {
+          r.key == k
+        } else = k {
+          r[0] == k
+        }
+
+        get_value(r) = v {
+          r.value == v
+        } else = v {
+          r[1] == v
+        }
+
+        get_error(r) = e {
+          r.error == e
+        } else = e {
+          r[2] == e
+        } else = "" {
+          # default if not present
+          true
+        }
+
         # Require that Namespace label `env` matches external mapping from provider
         violation[{"msg": msg}] {
           input.review.kind.kind == "Namespace"
@@ -22,9 +44,9 @@ spec:
 
           some i
           r := results[i]
-          r.key == name
-          want := r.value                  # expected env from provider
-          err  := r.error
+          get_key(r) == name
+          want := get_value(r)                  # expected env from provider
+          err  := get_error(r)
 
           err == ""
           want != ""
@@ -49,5 +71,5 @@ spec:
          # helper: check if any result exists for the given name
          any_result_for_name(results, name) {
            some i
-           results[i].key == name
+           get_key(results[i]) == name
          }

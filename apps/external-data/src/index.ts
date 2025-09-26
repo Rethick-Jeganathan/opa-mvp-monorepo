@@ -153,6 +153,42 @@ app.post('/lookup', async (req, res) => {
   res.json(resp);
 });
 
+// Gatekeeper expects POST /validate for external data validation
+app.post('/validate', async (req, res) => {
+  const body = req.body || {};
+  const keys: string[] = body?.request?.keys ?? [];
+
+  async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 1500);
+    try {
+      const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!resp.ok) throw new Error(`http_${resp.status}`);
+      const j: any = await resp.json();
+      const v = (j && typeof j.value === 'string') ? j.value : '';
+      return { key: name, value: v, error: '' };
+    } catch (_e) {
+      clearTimeout(t);
+      const v = NS_ENV[name] ?? '';
+      return { key: name, value: v, error: '' };
+    }
+  }
+
+  const items = await Promise.all(keys.map((k) => fetchNsEnv(k)));
+
+  const resp = {
+    apiVersion: 'externaldata.gatekeeper.sh/v1beta1',
+    kind: 'ProviderResponse',
+    response: {
+      idempotent: true,
+      items,
+      systemError: '',
+    },
+  };
+  res.json(resp);
+});
+
 const port = process.env.PORT ? Number(process.env.PORT) : 8080;
 app.listen(port, () => {
   console.log(`External Data Provider (HTTP) listening on :${port}`);

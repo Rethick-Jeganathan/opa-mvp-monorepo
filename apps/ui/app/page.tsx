@@ -76,7 +76,7 @@ export default function HomePage() {
           </div>
         )}
         <div className="mt-4 text-sm opacity-70">
-          MCP: http://localhost:4001 — LocalStack: http://localhost:4566
+          MCP: http://localhost:9200 — LocalStack: http://localhost:4566
         </div>
       </section>
 
@@ -119,7 +119,7 @@ export default function HomePage() {
             Run MCP Server: <code>npm --workspace apps/mcp-server run dev</code>
           </li>
           <li>
-            UI Dev: <code>npm run dev:ui</code> then open http://localhost:3000
+            UI Dev: <code>npm run dev</code> in <code>apps/ui</code>, then open http://localhost:7200
           </li>
         </ol>
       </section>

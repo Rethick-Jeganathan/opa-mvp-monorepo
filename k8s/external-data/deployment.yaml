@@ -56,4 +56,4 @@ spec:
         - name: edp-tls
           secret:
             secretName: edp-tls
-            optional: false
+            optional: true

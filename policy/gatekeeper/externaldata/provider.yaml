@@ -3,6 +3,6 @@ kind: Provider
 metadata:
   name: ns-env-provider
 spec:
-  # In-cluster Service URL for the External Data Provider (HTTP)
-  url: http://external-data.provider-system.svc:8080/lookup
-  timeout: 3
+  # In-cluster Service URL for the External Data Provider (HTTPS)
+  url: https://external-data.provider-system.svc:8443/lookup
+  timeout: 5
