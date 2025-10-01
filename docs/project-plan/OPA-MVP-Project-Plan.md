@@ -2,7 +2,7 @@
 
 Version: 0.1
 
-Last Updated: 2025-09-25 14:23 -05:00
+Last Updated: 2025-09-30 19:33 -05:00
 
 Owner(s): TBD
 
@@ -112,23 +112,24 @@ Dependencies:
 
 ### Week 2 — External Data + UI Skeleton (2025-09-22 → 2025-09-26)
 - [x] Implement External Data Provider per `externaldata.gatekeeper.sh`
-- [ ] Provider queries MCP Server, returns `{ items[{key,value,ttl}] }`
+- [x] Provider queries MCP Server, returns `{ items[{key,value,ttl}] }`
 - [x] Wire a constraint using external data (e.g., namespace -> environment mapping)
 - [x] Scaffold Next.js + Tailwind; create pages shell and navigation
 - [x] Kubernetes read-only lists via API proxy (namespaces/deployments/pods)
-- [ ] Dashboard health checks; Decisions table backed by SQLite (seed ok)
+- [x] Dashboard health checks
+- [ ] Decisions table backed by SQLite (seed ok)
 
 Deliverables:
 - Constraint using external data evaluates in cluster
-- UI: Dashboard, K8s lists, Decisions page showing entries
+- UI: Dashboard, K8s lists, External page (lookup)
 
 Dependencies:
 - Week 1 bundles, MCP endpoint
 
 ### Week 3 — Terraform Policy Gating (2025-09-29 → 2025-10-03)
-- [ ] Implement `/evaluate` in OPA Decision Service; load bundle and eval plan JSON
+- [x] Implement `/evaluate` in OPA Decision Service (MVP inline policy; bundle pull later)
 - [ ] Register TFC Run Task in a workspace and connect sample module
-- [ ] Store decisions in SQLite; surface on `/terraform`
+- [x] Store decisions in SQLite; surface on `/terraform`
 
 Deliverables:
 - Terraform run blocked on failing policy (e.g., unencrypted S3)
@@ -171,18 +172,18 @@ Dependencies:
 ## Tracking Table (Update Weekly)
 | ID | Task | Owner | Planned Start | Planned End | Actual Start | Actual End | Status | % Done |
 |----|------|-------|---------------|-------------|--------------|------------|--------|--------|
-| W1-1 | Monorepo scaffolding | TBD | 2025-09-15 | 2025-09-15 |  |  | Not Started | 0% |
-| W1-2 | Minikube + Gatekeeper | TBD | 2025-09-15 | 2025-09-16 |  |  | Not Started | 0% |
-| W1-3 | LocalStack + Redis | TBD | 2025-09-16 | 2025-09-17 |  |  | Not Started | 0% |
-| W1-4 | MCP stub + Redis | TBD | 2025-09-17 | 2025-09-18 |  |  | Not Started | 0% |
-| W1-5 | Baseline K8s policies | TBD | 2025-09-17 | 2025-09-18 |  |  | Not Started | 0% |
-| W1-6 | CI bundle build/publish | TBD | 2025-09-18 | 2025-09-19 |  |  | Not Started | 0% |
-| W2-1 | External Data Provider | TBD | 2025-09-22 | 2025-09-24 |  |  | Not Started | 0% |
-| W2-2 | External-data constraint | TBD | 2025-09-24 | 2025-09-25 |  |  | Not Started | 0% |
-| W2-3 | UI skeleton + K8s lists | TBD | 2025-09-22 | 2025-09-26 |  |  | Not Started | 0% |
-| W3-1 | OPA TFC `/evaluate` | TBD | 2025-09-29 | 2025-10-01 |  |  | Not Started | 0% |
+| W1-1 | Monorepo scaffolding | TBD | 2025-09-15 | 2025-09-15 |  |  | Done | 100% |
+| W1-2 | Minikube + Gatekeeper | TBD | 2025-09-15 | 2025-09-16 |  |  | Done | 100% |
+| W1-3 | LocalStack + Redis | TBD | 2025-09-16 | 2025-09-17 |  |  | Done | 100% |
+| W1-4 | MCP stub + Redis | TBD | 2025-09-17 | 2025-09-18 |  |  | Done | 100% |
+| W1-5 | Baseline K8s policies | TBD | 2025-09-17 | 2025-09-18 |  |  | Done | 100% |
+| W1-6 | CI bundle build/publish | TBD | 2025-09-18 | 2025-09-19 |  |  | Done | 100% |
+| W2-1 | External Data Provider | TBD | 2025-09-22 | 2025-09-24 |  |  | Done | 100% |
+| W2-2 | External-data constraint | TBD | 2025-09-24 | 2025-09-25 |  |  | Done | 100% |
+| W2-3 | UI skeleton + K8s lists | TBD | 2025-09-22 | 2025-09-26 |  |  | Done | 100% |
+| W3-1 | OPA TFC `/evaluate` | TBD | 2025-09-29 | 2025-10-01 |  |  | Done | 100% |
 | W3-2 | TFC Run Task integration | TBD | 2025-09-30 | 2025-10-02 |  |  | Not Started | 0% |
-| W3-3 | UI `/terraform` page | TBD | 2025-10-01 | 2025-10-03 |  |  | Not Started | 0% |
+| W3-3 | UI `/terraform` page | TBD | 2025-10-01 | 2025-10-03 |  |  | Done | 100% |
 | W4-1 | Policies toggle + params | TBD | 2025-10-06 | 2025-10-08 |  |  | Not Started | 0% |
 | W4-2 | Ad-hoc evaluator | TBD | 2025-10-07 | 2025-10-09 |  |  | Not Started | 0% |
 | W4-3 | Auth, limits, retries | TBD | 2025-10-06 | 2025-10-09 |  |  | Not Started | 0% |

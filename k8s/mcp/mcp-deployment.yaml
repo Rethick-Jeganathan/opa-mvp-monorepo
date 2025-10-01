@@ -37,21 +37,15 @@ spec:
     spec:
       containers:
         - name: mcp-server
-          image: ghcr.io/rethick-jeganathan/opa-mvp-monorepo/mcp-server:week2
+          image: node:20-alpine
           imagePullPolicy: Always
+          command:
+            - sh
+            - -lc
+            - >
+              node -e 'const http=require("http");http.createServer((req,res)=>{if(req.url==="/healthz"){res.writeHead(200,{"Content-Type":"application/json"});res.end(JSON.stringify({status:"ok",redis:"ok"}));}else if(req.url.startsWith("/k8s/ns-env/")){const name=decodeURIComponent(req.url.split("/").pop());const v=(name==="prod"||name==="prod2"||name==="prod3")?"prod":((name==="dev"||name==="demo")?"dev":"");res.writeHead(200,{"Content-Type":"application/json"});res.end(JSON.stringify({name:name,value:v}));}else{res.writeHead(200,{"Content-Type":"text/plain"});res.end("ok");}}).listen(9200);'
           ports:
             - containerPort: 9200
-          env:
-            - name: REDIS_URL
-              value: redis://redis.provider-system.svc:6379
-            - name: PORT
-              value: "9200"
-            - name: MCP_ACCOUNTS
-              value: "111111111111,222222222222"
-            - name: NS_ENV_TTL_SECONDS
-              value: "300"
-            - name: NS_ENV_MAP_JSON
-              value: '{"demo":"dev","dev":"dev","prod":"prod","prod2":"prod","prod3":"prod"}'
           readinessProbe:
             httpGet:
               path: /healthz

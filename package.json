@@ -14,6 +14,8 @@
     "start:ui": "npm -w apps/ui run start",
     "dev:edp": "npm -w apps/external-data run dev",
     "build:edp": "npm -w apps/external-data run build",
-    "start:edp": "npm -w apps/external-data run start"
+    "start:edp": "npm -w apps/external-data run start",
+    "dev:opa": "npm -w apps/opa-tfc run dev",
+    "start:opa": "npm -w apps/opa-tfc run start"
   }
 }

@@ -118,7 +118,13 @@ app.get('/ca', (_req, res) => {
 // Response: { apiVersion, kind, response: { idempotent?, items: [{key, value, error}], systemError? } }
 app.post('/lookup', async (req, res) => {
   const body = req.body || {};
-  const keys: string[] = body?.request?.keys ?? [];
+  const keys: string[] = Array.isArray(body?.request?.keys)
+    ? body.request.keys
+    : Array.isArray(body?.keys)
+    ? body.keys
+    : Array.isArray(body?.request?.entries)
+    ? body.request.entries.map((e: any) => e?.key).filter(Boolean)
+    : [];
 
   async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
     // Try MCP first with a short timeout; fall back to in-memory map
@@ -156,7 +162,13 @@ app.post('/lookup', async (req, res) => {
 // Gatekeeper expects POST /validate for external data validation
 app.post('/validate', async (req, res) => {
   const body = req.body || {};
-  const keys: string[] = body?.request?.keys ?? [];
+  const keys: string[] = Array.isArray(body?.request?.keys)
+    ? body.request.keys
+    : Array.isArray(body?.keys)
+    ? body.keys
+    : Array.isArray(body?.request?.entries)
+    ? body.request.entries.map((e: any) => e?.key).filter(Boolean)
+    : [];
 
   async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
     const ctrl = new AbortController();
