@@ -1,0 +1,113 @@
+name: Kind Gatekeeper E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.2'
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: opa-mvp
+
+      - name: Build external-data image
+        run: |
+          docker build -t external-data:dev apps/external-data/
+
+      - name: Load image into kind
+        run: |
+          kind load docker-image external-data:dev --name opa-mvp
+
+      - name: Create namespace
+        run: |
+          kubectl create ns provider-system || true
+
+      - name: Deploy MCP and EDP
+        run: |
+          set -euo pipefail
+          kubectl apply -f k8s/mcp/mcp-deployment.yaml
+          kubectl apply -f k8s/external-data/service.yaml
+          kubectl apply -f k8s/external-data/deployment.yaml
+          # Patch image to the locally built one
+          kubectl -n provider-system set image deploy/external-data external-data=external-data:dev
+          kubectl -n provider-system rollout status deploy/mcp-server --timeout=180s
+          kubectl -n provider-system rollout status deploy/external-data --timeout=180s
+
+      - name: Install Gatekeeper
+        run: |
+          set -euo pipefail
+          kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.16/deploy/gatekeeper.yaml
+          kubectl -n gatekeeper-system rollout status deploy/gatekeeper-controller-manager --timeout=300s
+
+      - name: Apply Provider, CT, Constraint
+        run: |
+          set -euo pipefail
+          kubectl apply -f policy/gatekeeper/externaldata/provider.yaml
+          kubectl apply -f policy/gatekeeper/constrainttemplates/ns_env_match_template.yaml
+          kubectl apply -f policy/gatekeeper/constraints/ns_env_match.yaml
+
+      - name: Rotate Provider caBundle and restart Gatekeeper
+        run: |
+          set -euo pipefail
+          ca=$(kubectl -n provider-system run fetch-ca --image=curlimages/curl:8.8.0 --restart=Never --attach --rm -i -- curl -sS http://external-data.provider-system.svc:8080/ca)
+          b64=$(printf "%s" "$ca" | base64 -w0)
+          cat <<YAML | kubectl apply -f -
+          apiVersion: externaldata.gatekeeper.sh/v1beta1
+          kind: Provider
+          metadata:
+            name: ns-env-provider
+          spec:
+            url: https://external-data.provider-system.svc:8443
+            timeout: 5
+            caBundle: $b64
+          YAML
+          kubectl -n gatekeeper-system rollout restart deploy/gatekeeper-controller-manager
+          kubectl -n gatekeeper-system rollout status deploy/gatekeeper-controller-manager --timeout=180s
+
+      - name: Verify allow + 3x explicit DENY
+        run: |
+          set -euo pipefail
+          kubectl delete ns dev --ignore-not-found=true
+          kubectl apply -f policy/gatekeeper/samples/ns-ext-good.yaml
+          count=0
+          for i in 1 2 3; do
+            kubectl delete ns prod3 --ignore-not-found=true
+            out=$(kubectl apply -f policy/gatekeeper/samples/ns-ext-bad3.yaml 2>&1 || true)
+            echo "[DENY Attempt $i]"
+            echo "$out"
+            if echo "$out" | grep -q "does not match external mapping"; then
+              count=$((count+1))
+            fi
+          done
+          echo "Explicit DENY count: $count"
+          test "$count" -eq 3
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide || true
+          kubectl -n gatekeeper-system logs deploy/gatekeeper-controller-manager --tail=200 || true
+          kubectl -n provider-system logs deploy/external-data --tail=200 || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: |
+            **/*.log
+            !node_modules/**
+            !**/.git/**

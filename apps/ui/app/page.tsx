@@ -76,7 +76,7 @@ export default function HomePage() {
           </div>
         )}
         <div className="mt-4 text-sm opacity-70">
-          MCP: http://localhost:9200 — LocalStack: http://localhost:4566
+          MCP via API proxy (in-cluster :9200 service or port-forward). LocalStack: http://localhost:4566
         </div>
       </section>
 

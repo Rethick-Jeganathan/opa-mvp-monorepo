@@ -12,6 +12,7 @@ Owner(s): TBD
 Deliver a simplified but fully functional MVP for policy-as-code across Kubernetes (Gatekeeper) and Terraform Cloud Run Tasks, with a UI for visibility and minimal controls.
 
 ## Scope (MVP)
+- 2 cloud providers: AWS + GCP (Azure removed). AWS-first enforcement; GCP policy stubs/templates as placeholders.
 - AWS context via LocalStack (toggle to real AWS optional)
 - Single Minikube cluster
 - Gatekeeper admission with External Data Provider querying an MCP Server
@@ -120,8 +121,8 @@ Dependencies:
 - [ ] Decisions table backed by SQLite (seed ok)
 
 Deliverables:
-- Constraint using external data evaluates in cluster
-- UI: Dashboard, K8s lists, External page (lookup)
+- External-data provider wired over HTTPS (Provider + caBundle); explicit mismatch deny pending stable verification (intermittent fail-close observed)
+- UI: Dashboard, K8s lists, External page (lookup); MCP tile green when service is reachable on :9200 (in-cluster service or port-forward)
 
 Dependencies:
 - Week 1 bundles, MCP endpoint

@@ -2,7 +2,7 @@
 
 Start: 2025-09-18 20:58 -05:00
 
-Status: Done — 2025-09-26 21:56 -05:00
+Status: Pending explicit DENY (stability) — 2025-09-30 20:34 -05:00
 
 ## Today's Log
 - Scaffolded External Data Provider (Express + TS) with `/healthz` and `/lookup` endpoints
@@ -69,6 +69,7 @@ kubectl -n provider-system exec toolbox -- sh -lc "wget -qO- http://mcp-server.p
   - `ns-ext-good.yaml` (namespace/dev env=dev) → ALLOWED: `namespace/dev created`
   - `ns-ext-bad3.yaml` (namespace/prod3 env=dev) → DENIED:
     - `admission webhook "validation.gatekeeper.sh" denied the request: [ns-env-match] namespace "prod3" env label "dev" does not match external mapping "prod"`
+  - Note: Intermittent fail-close observed ("external data missing or unreachable"). Explicit mismatch deny requires stability; evidence loop remains open until 3 consecutive DENY messages are captured for the same mismatch.
 
 ## Dependencies Status
 - Docker: Required for image build
@@ -82,12 +83,12 @@ kubectl -n provider-system exec toolbox -- sh -lc "wget -qO- http://mcp-server.p
 ## Week 2 Definition of Done
 - [x] External Data Provider deployed and healthy in Minikube
 - [x] Gatekeeper Provider CRD references EDP service URL (HTTPS + caBundle)
-- [x] ConstraintTemplate uses `external_data()` with provider; explicit mismatch message guaranteed via fallback mapping
-- [x] Constraint enforces namespace env label matches external mapping (deny path exercised)
-- [x] End-to-end test: namespace creation shows allow/deny behavior
+- [ ] ConstraintTemplate uses `external_data()` with provider; explicit mismatch deny pending stable verification (intermittent fail-close observed)
+- [ ] End-to-end test: deny path stability pending (capture 3 consecutive explicit DENY messages for mismatch)
 - [x] UI External Data page shows provider health and lookup capability
 
 ## Notes & Next
 - Provider is reachable locally; for deterministic in-cluster reachability, use the Service URL and caBundle.
-- Image CI is in place: GHCR publishes EDP images; Provider uses the in-cluster Service.
+- UI Overview MCP tile reads service on :9200 via in-cluster Service (or port-forward), not localhost.
+- Tech debt: a minimal Node image was used to unblock MCP on :9200; replace with the full MCP implementation.
 

@@ -12,7 +12,7 @@ async function fetchWithTimeout(url: string, ms = 1500): Promise<Response> {
 }
 
 export async function GET() {
-  const MCP_BASE = process.env.MCP_URL || "http://localhost:9200";
+  const MCP_BASE = process.env.MCP_URL || "http://mcp-server.provider-system.svc:9200";
   // MCP health
   let mcpStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
   let mcpRedis: "ok" | "warn" | "err" | "unknown" = "unknown";
