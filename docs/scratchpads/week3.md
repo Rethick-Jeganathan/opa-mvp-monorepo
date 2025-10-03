@@ -14,8 +14,9 @@ Status: Done — 2025-09-30 19:32 -05:00
 
 ## Checklist (Week 3 - per Project Plan)
 - [x] Implement `/evaluate` in OPA Decision Service (MVP uses minimal inline policy; bundle pull next)
-- [ ] Register TFC Run Task in a workspace and connect sample module
+- [ ] Register TFC Run Task in a workspace and connect sample module (optional; paid TFC feature)
 - [x] Store decisions in SQLite; surface on `/terraform`
+- [x] CI Gate (Free): OpenTofu/Terraform plan → Decision Service `/evaluate` → fail workflow on policy fail
 
 ## MVP Scope & Approach
 - Language: Node.js (Express) for speed and repo consistency.
