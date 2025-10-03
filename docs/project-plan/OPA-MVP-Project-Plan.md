@@ -2,7 +2,7 @@
 
 Version: 0.1
 
-Last Updated: 2025-09-30 19:33 -05:00
+Last Updated: 2025-10-02 23:32 -05:00
 
 Owner(s): TBD
 
@@ -17,6 +17,7 @@ Deliver a simplified but fully functional MVP for policy-as-code across Kubernet
 - Single Minikube cluster
 - Gatekeeper admission with External Data Provider querying an MCP Server
 - Terraform gating via an OPA Decision Service integrated with TFC Run Tasks
+  (or CI gate on GitHub Actions as a free alternative)
 - Policy bundles built in CI and pulled by services (OCI/HTTP)
 - UI: Dashboard, Policies, Kubernetes, Decisions, Terraform, Settings
 - Basic auth, SQLite for logs/config, single Redis instance (no HA)
@@ -129,22 +130,25 @@ Dependencies:
 
 ### Week 3 — Terraform Policy Gating (2025-09-29 → 2025-10-03)
 - [x] Implement `/evaluate` in OPA Decision Service (MVP inline policy; bundle pull later)
-- [ ] Register TFC Run Task in a workspace and connect sample module
 - [x] Store decisions in SQLite; surface on `/terraform`
+- [x] CI gate (Free): OpenTofu/Terraform plan → Decision Service `/evaluate` → fail workflow on policy fail
 
 Deliverables:
-- Terraform run blocked on failing policy (e.g., unencrypted S3)
+- Terraform changes gated in CI (GitHub Actions) using Decision Service; run blocked on failing policy (e.g., unencrypted S3 / public ACL).
+  Links: Fail run → https://github.com/Rethick-Jeganathan/opa-mvp-monorepo/actions/workflows/week3-ci-gate-fail.yml?query=branch%3Amain
+         Pass run → https://github.com/Rethick-Jeganathan/opa-mvp-monorepo/actions/workflows/week3-ci-gate-pass.yml?query=branch%3Amain
 - UI `/terraform` shows last 5 runs with status and message
 
 Dependencies:
-- GHCR bundles available; TFC access token
+- None required for CI gate; TFC access token only if pursuing Run Task integration
 
 ### Week 4 — Actions, Hardening, Ad-hoc Evaluation (2025-10-06 → 2025-10-10)
-- [ ] Policies page: enable/disable constraints; edit parameters (via K8s API)
-- [ ] Ad-hoc YAML evaluator calling validation path (dry-run or local eval)
-- [ ] Basic auth on UI and admin endpoints
+- [ ] Decisions page: unified list (K8s/Terraform) with filters (source/result/time)
+- [ ] Terraform evaluate sandbox on UI (form posting to `/api/opa/evaluate`)
+- [ ] Basic auth for UI admin routes and Decision Service (minimal, optional if time)
 - [ ] Timeouts/retries on provider→MCP→Redis; simple rate limiting
-- [ ] E2E tests (Playwright/Cypress) for critical flows
+- [ ] Close Week 2: stabilize explicit DENY (Provider URL/caBundle) with 3x run proof
+- [ ] Minimal smoke tests in CI for `/evaluate`, `/decisions`, and UI health
 
 Deliverables:
 - Toggle constraint from UI reflects in cluster
@@ -183,8 +187,9 @@ Dependencies:
 | W2-2 | External-data constraint | TBD | 2025-09-24 | 2025-09-25 |  |  | Done | 100% |
 | W2-3 | UI skeleton + K8s lists | TBD | 2025-09-22 | 2025-09-26 |  |  | Done | 100% |
 | W3-1 | OPA TFC `/evaluate` | TBD | 2025-09-29 | 2025-10-01 |  |  | Done | 100% |
-| W3-2 | TFC Run Task integration | TBD | 2025-09-30 | 2025-10-02 |  |  | Not Started | 0% |
+| W3-2 | TFC Run Task integration (optional/post-MVP) | TBD | 2025-09-30 | 2025-10-02 |  |  | Deferred | 0% |
 | W3-3 | UI `/terraform` page | TBD | 2025-10-01 | 2025-10-03 |  |  | Done | 100% |
+| W3-4 | CI Gate (OpenTofu → Decision Service) | TBD | 2025-10-02 | 2025-10-02 |  |  | Done | 100% |
 | W4-1 | Policies toggle + params | TBD | 2025-10-06 | 2025-10-08 |  |  | Not Started | 0% |
 | W4-2 | Ad-hoc evaluator | TBD | 2025-10-07 | 2025-10-09 |  |  | Not Started | 0% |
 | W4-3 | Auth, limits, retries | TBD | 2025-10-06 | 2025-10-09 |  |  | Not Started | 0% |

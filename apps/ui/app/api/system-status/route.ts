@@ -13,6 +13,7 @@ async function fetchWithTimeout(url: string, ms = 1500): Promise<Response> {
 
 export async function GET() {
   const MCP_BASE = process.env.MCP_URL || "http://mcp-server.provider-system.svc:9200";
+  const LS_BASE = process.env.LOCALSTACK_URL || "http://localhost:4566";
   // MCP health
   let mcpStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
   let mcpRedis: "ok" | "warn" | "err" | "unknown" = "unknown";
@@ -36,7 +37,7 @@ export async function GET() {
   let lsStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
   let lsError = "";
   try {
-    const h = await fetchWithTimeout("http://localhost:4566/_localstack/health", 1500);
+    const h = await fetchWithTimeout(`${LS_BASE}/_localstack/health`, 1500);
     if (h.ok) {
       lsStatus = "ok";
     } else {
@@ -46,7 +47,7 @@ export async function GET() {
   } catch (e1) {
     try {
       // Fallback: ping root
-      const r = await fetchWithTimeout("http://localhost:4566", 1500);
+      const r = await fetchWithTimeout(LS_BASE, 1500);
       lsStatus = r.ok ? "ok" : "warn";
     } catch (e2: any) {
       lsStatus = "err";

@@ -1,0 +1,54 @@
+name: Week4 Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install UI and Decision Service deps
+        run: |
+          npm -w apps/opa-tfc ci --no-audit --no-fund
+          npm -w apps/ui ci --no-audit --no-fund
+
+      - name: Start Decision Service
+        run: |
+          nohup node apps/opa-tfc/index.js > server.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Wait for Decision Service
+        run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:9300/healthz >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo "Decision Service did not start" >&2
+          exit 1
+
+      - name: Exercise evaluate (fail and pass)
+        run: |
+          echo '{"source":"ci","subject":"smoke-fail","input":{"resource":"aws_s3_bucket","encryption":false,"acl":"public-read"}}' > payload-fail.json
+          curl -s -H 'Content-Type: application/json' --data @payload-fail.json http://localhost:9300/evaluate | jq '.'
+          echo '{"source":"ci","subject":"smoke-pass","input":{"resource":"aws_s3_bucket","encryption":true,"acl":"private"}}' > payload-pass.json
+          curl -s -H 'Content-Type: application/json' --data @payload-pass.json http://localhost:9300/evaluate | jq '.'
+          curl -s http://localhost:9300/decisions?limit=5 | jq '.'
+
+      - name: Build UI
+        run: npm -w apps/ui run build
+
+      - name: Stop Decision Service
+        if: always()
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+          sleep 1
+          pkill -f "apps/opa-tfc/index.js" || true

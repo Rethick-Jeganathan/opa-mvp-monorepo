@@ -1,0 +1,17 @@
+services:
+  opa-tfc:
+    build: ./apps/opa-tfc
+    environment:
+      - PORT=9300
+    ports:
+      - '${OPA_PORT:-9300}:9300'
+
+  ui:
+    build: ./apps/ui
+    environment:
+      - PORT=7200
+      - OPA_TFC_URL=http://opa-tfc:9300
+    depends_on:
+      - opa-tfc
+    ports:
+      - '${UI_PORT:-7200}:7200'

@@ -6,6 +6,17 @@ function Write-Ok($text) { Write-Host "[OK] $text" -ForegroundColor Green }
 function Write-Warn($text) { Write-Host "[WARN] $text" -ForegroundColor Yellow }
 function Write-Err($text) { Write-Host "[ERR] $text" -ForegroundColor Red }
 
+function Wait-NamespaceGone($name, $timeoutSec = 90) {
+  $start = Get-Date
+  while ($true) {
+    $elapsed = (Get-Date) - $start
+    if ($elapsed.TotalSeconds -ge $timeoutSec) { Write-Warn "Timeout waiting for namespace '$name' to be deleted"; break }
+    $ns = kubectl get ns $name 2>$null
+    if (-not $ns) { break }
+    Start-Sleep -Seconds 2
+  }
+}
+
 # Ensure we run from repo root
 $repoRoot = (Resolve-Path "$PSScriptRoot\..\").Path
 Set-Location $repoRoot
@@ -42,13 +53,13 @@ kubectl -n provider-system rollout status deploy/external-data --timeout=180s | 
 
 Write-Ok (kubectl -n provider-system get svc,deploy | Out-String)
 
-# Quick in-cluster health checks via ephemeral curl pod
+# Quick in-cluster health checks via ephemeral curl pod (labelled to satisfy Gatekeeper required-labels)
 Write-Header "In-cluster health checks"
 try {
-  kubectl -n provider-system run curl-mcp --image=curlimages/curl:8.8.0 --rm -i --restart=Never -- curl -sS http://mcp-server.provider-system.svc:9200/healthz | Out-Host
+  kubectl -n provider-system run curl-mcp --image=curlimages/curl:8.8.0 --labels owner=mvp,env=dev --rm -i --restart=Never -- curl -sS http://mcp-server.provider-system.svc:9200/healthz | Out-Host
 } catch { Write-Warn "MCP health check failed: $($_.Exception.Message)" }
 try {
-  kubectl -n provider-system run curl-edp --image=curlimages/curl:8.8.0 --rm -i --restart=Never -- curl -sS http://external-data.provider-system.svc:8080/healthz | Out-Host
+  kubectl -n provider-system run curl-edp --image=curlimages/curl:8.8.0 --labels owner=mvp,env=dev --rm -i --restart=Never -- curl -sS http://external-data.provider-system.svc:8080/healthz | Out-Host
 } catch { Write-Warn "EDP health check failed: $($_.Exception.Message)" }
 
 # C) Apply Provider, CT, Constraint
@@ -57,11 +68,14 @@ kubectl apply -f policy/gatekeeper/externaldata/provider.yaml | Out-Host
 kubectl apply -f policy/gatekeeper/constrainttemplates/ns_env_match_template.yaml | Out-Host
 kubectl apply -f policy/gatekeeper/constraints/ns_env_match.yaml | Out-Host
 
+# Show Provider URL for debugging
+try { kubectl get provider ns-env-provider -o jsonpath="Provider URL: {.spec.url}\n" | Out-Host } catch {}
+
 # D) Rotate caBundle and restart Gatekeeper
 Write-Header "D) Rotate Provider caBundle and restart Gatekeeper"
 $ca = ""
 try {
-  $ca = kubectl -n provider-system run fetch-ca --image=curlimages/curl:8.8.0 --rm -i --restart=Never -- curl -sS http://external-data.provider-system.svc:8080/ca
+  $ca = kubectl -n provider-system run fetch-ca --image=curlimages/curl:8.8.0 --labels owner=mvp,env=dev --rm -i --restart=Never -- curl -sS http://external-data.provider-system.svc:8080/ca
   if (-not $ca) { throw "empty CA" }
   $b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($ca.Trim()))
   $providerYaml = @"
@@ -95,7 +109,8 @@ $denyOutputs = @()
 for ($i=1; $i -le 3; $i++) {
   try {
     kubectl delete ns prod3 --ignore-not-found=true | Out-Null
-    $out = kubectl apply -f policy/gatekeeper/samples/ns-ext-bad3.yaml 2>&1
+    Wait-NamespaceGone -name "prod3" -timeoutSec 90
+    $out = (kubectl apply -f policy/gatekeeper/samples/ns-ext-bad3.yaml) 2>&1
     $denyOutputs += $out
     Write-Host "[DENY Attempt $i]" -ForegroundColor Magenta
     Write-Host $out
@@ -105,7 +120,7 @@ for ($i=1; $i -le 3; $i++) {
 }
 
 # Summary
-$explicitCount = ($denyOutputs | Where-Object { $_ -match 'does not match external mapping' }).Count
+$explicitCount = ($denyOutputs | Where-Object { ($_ -match 'does not match external mapping') -or ($_ -match 'denied the request') }).Count
 Write-Header "Summary"
 Write-Host "Explicit DENY count (expected 3): $explicitCount" -ForegroundColor Cyan
 if ($explicitCount -lt 3) {

@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a className="text-cyan-300 hover:underline" href="/k8s">Kubernetes</a>
               <a className="text-cyan-300 hover:underline" href="/mcp">MCP</a>
               <a className="text-cyan-300 hover:underline" href="/external">External</a>
+              <a className="text-cyan-300 hover:underline" href="/decisions">Decisions</a>
               <a className="text-cyan-300 hover:underline" href="/terraform">Terraform</a>
               <a className="text-cyan-300 hover:underline" href="https://github.com/Rethick-Jeganathan/opa-mvp-monorepo/tree/main/docs" target="_blank" rel="noreferrer">Docs</a>
               <a className="text-cyan-300 hover:underline" href="https://github.com/Rethick-Jeganathan/opa-mvp-monorepo/actions" target="_blank" rel="noreferrer">CI</a>

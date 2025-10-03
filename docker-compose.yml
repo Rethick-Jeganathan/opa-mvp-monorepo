@@ -16,5 +16,53 @@ services:
     volumes:
       - localstack-data:/var/lib/localstack
 
+  mcp-server:
+    build: ./apps/mcp-server
+    environment:
+      - PORT=9200
+      - REDIS_URL=redis://redis:6379
+      # Optional: override default accounts/tags
+      - MCP_ACCOUNTS=111111111111,222222222222
+      - MCP_DEFAULT_TAGS_JSON={"owner":"mvp","env":"dev"}
+      - NS_ENV_MAP_JSON={"demo":"dev","dev":"dev","prod":"prod","prod2":"prod","prod3":"prod"}
+    depends_on:
+      - redis
+    ports:
+      - '9200:9200'
+
+  external-data:
+    build: ./apps/external-data
+    environment:
+      - MCP_URL=http://mcp-server:9200
+      - PORT=8080
+      - TLS_PORT=8443
+    depends_on:
+      - mcp-server
+    ports:
+      - '8080:8080'
+      - '8443:8443'
+
+  opa-tfc:
+    build: ./apps/opa-tfc
+    environment:
+      - PORT=9300
+    ports:
+      - '9300:9300'
+
+  ui:
+    build: ./apps/ui
+    environment:
+      - PORT=7200
+      - MCP_URL=http://mcp-server:9200
+      - EDP_URL=http://external-data:8080
+      - OPA_TFC_URL=http://opa-tfc:9300
+      # If you need client-side exposure, add NEXT_PUBLIC_* variants
+    depends_on:
+      - mcp-server
+      - external-data
+      - opa-tfc
+    ports:
+      - '${UI_PORT:-7200}:7200'
+
 volumes:
   localstack-data:

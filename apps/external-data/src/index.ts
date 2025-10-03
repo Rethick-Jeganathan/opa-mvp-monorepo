@@ -127,22 +127,23 @@ app.post('/lookup', async (req, res) => {
     : [];
 
   async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
-    // Try MCP first with a short timeout; fall back to in-memory map
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 1500);
-    try {
-      const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
-      clearTimeout(t);
-      if (!resp.ok) throw new Error(`http_${resp.status}`);
-      const j: any = await resp.json();
-      const v = (j && typeof j.value === 'string') ? j.value : '';
-      return { key: name, value: v, error: '' };
-    } catch (_e) {
-      clearTimeout(t);
-      const v = NS_ENV[name] ?? '';
-      // If fallback used, keep error empty so policy can still evaluate
-      return { key: name, value: v, error: '' };
+    // Try MCP first with short timeout and a single retry; then fall back
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 1000);
+      try {
+        const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!resp.ok) throw new Error(`http_${resp.status}`);
+        const j: any = await resp.json();
+        const v = (j && typeof j.value === 'string') ? j.value : '';
+        return { key: name, value: v, error: '' };
+      } catch (_e) {
+        clearTimeout(t);
+      }
     }
+    const v = NS_ENV[name] ?? '';
+    return { key: name, value: v, error: '' };
   }
 
   const items = await Promise.all(keys.map((k) => fetchNsEnv(k)));
@@ -171,20 +172,22 @@ app.post('/validate', async (req, res) => {
     : [];
 
   async function fetchNsEnv(name: string): Promise<{ key: string; value: string; error: string }> {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 1500);
-    try {
-      const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
-      clearTimeout(t);
-      if (!resp.ok) throw new Error(`http_${resp.status}`);
-      const j: any = await resp.json();
-      const v = (j && typeof j.value === 'string') ? j.value : '';
-      return { key: name, value: v, error: '' };
-    } catch (_e) {
-      clearTimeout(t);
-      const v = NS_ENV[name] ?? '';
-      return { key: name, value: v, error: '' };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 1000);
+      try {
+        const resp = await fetch(`${MCP_URL}/k8s/ns-env/${encodeURIComponent(name)}`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!resp.ok) throw new Error(`http_${resp.status}`);
+        const j: any = await resp.json();
+        const v = (j && typeof j.value === 'string') ? j.value : '';
+        return { key: name, value: v, error: '' };
+      } catch (_e) {
+        clearTimeout(t);
+      }
     }
+    const v = NS_ENV[name] ?? '';
+    return { key: name, value: v, error: '' };
   }
 
   const items = await Promise.all(keys.map((k) => fetchNsEnv(k)));

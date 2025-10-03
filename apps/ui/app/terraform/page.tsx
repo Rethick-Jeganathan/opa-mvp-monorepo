@@ -73,6 +73,45 @@ export default function TerraformPage() {
       <section className="card">
         <h2 className="text-lg font-semibold mb-2">Evaluate (POST /evaluate)</h2>
         <div className="grid gap-3">
+          <div className="flex items-center gap-2">
+            <span className="opacity-70 text-sm">Presets:</span>
+            <button
+              onClick={() =>
+                setEvalBody(
+                  JSON.stringify(
+                    {
+                      source: "ui",
+                      subject: `run-fail-${Date.now()}`,
+                      input: { resource: "aws_s3_bucket", encryption: false, acl: "public-read" },
+                    },
+                    null,
+                    2
+                  )
+                )
+              }
+              className="px-2 py-1 bg-rose-700/70 hover:bg-rose-700 rounded text-xs"
+            >
+              Preset: FAIL (unencrypted + public)
+            </button>
+            <button
+              onClick={() =>
+                setEvalBody(
+                  JSON.stringify(
+                    {
+                      source: "ui",
+                      subject: `run-pass-${Date.now()}`,
+                      input: { resource: "aws_s3_bucket", encryption: true, acl: "private" },
+                    },
+                    null,
+                    2
+                  )
+                )
+              }
+              className="px-2 py-1 bg-emerald-700/70 hover:bg-emerald-700 rounded text-xs"
+            >
+              Preset: PASS (encrypted + private)
+            </button>
+          </div>
           <textarea
             value={evalBody}
             onChange={(e) => setEvalBody(e.target.value)}

@@ -4,6 +4,5 @@ metadata:
   name: ns-env-provider
 spec:
   # In-cluster Service URL for the External Data Provider (HTTPS)
-  # Gatekeeper will call /validate on this base URL
-  url: https://external-data.provider-system.svc:8443
+  url: https://external-data.provider-system.svc:8443/validate
   timeout: 5
