@@ -1,0 +1,85 @@
+name: Week3 CI Gate (Pass)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Decision Service deps
+        working-directory: apps/opa-tfc
+        run: npm ci --no-audit --no-fund
+
+      - name: Start Decision Service
+        working-directory: apps/opa-tfc
+        run: |
+          nohup node index.js > server.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Wait for Decision Service
+        run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:9300/healthz >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo "Decision Service did not start" >&2
+          exit 1
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform init
+        working-directory: ci/terraform
+        run: terraform init -input=false -upgrade
+
+      - name: Terraform plan (expected PASS)
+        working-directory: ci/terraform
+        env:
+          ENC: "true"
+          ACL: "private"
+        run: |
+          terraform plan -input=false -out tfplan -var "encryption=${ENC}" -var "acl=${ACL}"
+          terraform show -json tfplan > plan.json
+
+      - name: Build decision input from plan.json
+        working-directory: ci/terraform
+        run: |
+          enc=$(jq -r '.resource_changes[] | select(.type=="null_resource" and .name=="s3") | .change.after.triggers.encryption' plan.json || echo "false")
+          acl=$(jq -r '.resource_changes[] | select(.type=="null_resource" and .name=="s3") | .change.after.triggers.acl' plan.json || echo "private")
+          if [ "$enc" = "true" ]; then enc_bool=true; else enc_bool=false; fi
+          cat > payload.json <<EOF
+          {"source":"ci","subject":"${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}","input":{"resource":"aws_s3_bucket","encryption":$enc_bool,"acl":"$acl"}}
+          EOF
+          cat payload.json
+
+      - name: Evaluate policy (should pass)
+        working-directory: ci/terraform
+        run: |
+          curl -s -H 'Content-Type: application/json' --data @payload.json http://localhost:9300/evaluate | tee result.json
+          status=$(jq -r '.status' result.json)
+          echo "status=$status" >> $GITHUB_OUTPUT
+          if [ "$status" != "pass" ]; then
+            echo "::error::Expected pass but got $status"
+            exit 1
+          fi
+
+      - name: Stop Decision Service
+        if: always()
+        working-directory: apps/opa-tfc
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+          sleep 1
+          pkill -f "node index.js" || true
