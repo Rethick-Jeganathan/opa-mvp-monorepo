@@ -12,8 +12,10 @@ async function fetchWithTimeout(url: string, ms = 1500): Promise<Response> {
 }
 
 export async function GET() {
-  const MCP_BASE = process.env.MCP_URL || "http://mcp-server.provider-system.svc:9200";
+  const MCP_BASE = process.env.MCP_URL || "http://localhost:9200";
   const LS_BASE = process.env.LOCALSTACK_URL || "http://localhost:4566";
+  const OPA_BASE = process.env.OPA_TFC_URL || "http://localhost:9300";
+
   // MCP health
   let mcpStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
   let mcpRedis: "ok" | "warn" | "err" | "unknown" = "unknown";
@@ -55,8 +57,26 @@ export async function GET() {
     }
   }
 
+  // Decision Service (OPA) health
+  let opaStatus: "ok" | "warn" | "err" | "unknown" = "unknown";
+  let opaError = "";
+  try {
+    const o = await fetchWithTimeout(`${OPA_BASE}/healthz`, 1500);
+    if (o.ok) {
+      const j = await o.json();
+      opaStatus = j?.status === "ok" ? "ok" : "warn";
+    } else {
+      opaStatus = "warn";
+      opaError = `HTTP ${o.status}`;
+    }
+  } catch (e: any) {
+    opaStatus = "err";
+    opaError = String(e?.message || e);
+  }
+
   return NextResponse.json({
     mcp: { status: mcpStatus, redis: mcpRedis, error: mcpError },
     localstack: { status: lsStatus, error: lsError },
+    opa: { status: opaStatus, error: opaError },
   });
 }

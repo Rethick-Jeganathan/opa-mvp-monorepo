@@ -7,6 +7,7 @@ type Status = "ok" | "warn" | "err" | "unknown";
 type SystemStatus = {
   mcp: { status: Status; redis?: Status; error?: string };
   localstack: { status: Status; error?: string };
+  opa?: { status: Status; error?: string };
 };
 
 export default function HomePage() {
@@ -23,6 +24,7 @@ export default function HomePage() {
         setStatus({
           mcp: { status: "err", error: String(e) },
           localstack: { status: "unknown", error: "" },
+          opa: { status: "unknown", error: "" },
         });
       } finally {
         setLoading(false);
@@ -73,10 +75,25 @@ export default function HomePage() {
                 {status.localstack.error}
               </pre>
             )}
+            {status.opa && (
+              <>
+                <div className="flex items-center justify-between pt-2">
+                  <div>Decision Service (OPA)</div>
+                  <span className={badge(status.opa.status)}>
+                    {status.opa.status}
+                  </span>
+                </div>
+                {status.opa.error && (
+                  <pre className="text-xs text-rose-300/80 whitespace-pre-wrap">
+                    {status.opa.error}
+                  </pre>
+                )}
+              </>
+            )}
           </div>
         )}
         <div className="mt-4 text-sm opacity-70">
-          MCP via API proxy (in-cluster :9200 service or port-forward). LocalStack: http://localhost:4566
+          MCP: http://localhost:9200 | LocalStack: http://localhost:4566 | OPA: http://localhost:9300
         </div>
       </section>
 
@@ -84,16 +101,28 @@ export default function HomePage() {
         <h2 className="text-lg font-semibold mb-2">Quick Links</h2>
         <ul className="list-disc list-inside space-y-2">
           <li>
-            <a className="text-cyan-300 hover:underline" href="/mcp">
-              MCP Explorer (accounts & tags)
+            <a className="text-cyan-300 hover:underline" href="/decisions">
+              📊 Decisions (unified K8s/Terraform)
             </a>
           </li>
           <li>
-            <a
-              className="text-cyan-300 hover:underline"
-              href="/gatekeeper"
-            >
-              Gatekeeper Setup & Validation
+            <a className="text-cyan-300 hover:underline" href="/terraform">
+              🔧 Terraform Evaluate & Recent Runs
+            </a>
+          </li>
+          <li>
+            <a className="text-cyan-300 hover:underline" href="/mcp">
+              🗄️ MCP Explorer (accounts & tags)
+            </a>
+          </li>
+          <li>
+            <a className="text-cyan-300 hover:underline" href="/external">
+              🔌 External Data Provider
+            </a>
+          </li>
+          <li>
+            <a className="text-cyan-300 hover:underline" href="/k8s">
+              ☸️ Kubernetes Resources
             </a>
           </li>
           <li>
@@ -103,7 +132,7 @@ export default function HomePage() {
               target="_blank"
               rel="noreferrer"
             >
-              CI: Build Policy Bundles
+              🚀 CI: Build Policy Bundles & Gates
             </a>
           </li>
         </ul>
