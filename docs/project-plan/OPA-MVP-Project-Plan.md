@@ -143,12 +143,12 @@ Dependencies:
 - None required for CI gate; TFC access token only if pursuing Run Task integration
 
 ### Week 4 — Actions, Hardening, Ad-hoc Evaluation (2025-10-06 → 2025-10-10)
-- [ ] Decisions page: unified list (K8s/Terraform) with filters (source/result/time)
-- [ ] Terraform evaluate sandbox on UI (form posting to `/api/opa/evaluate`)
-- [ ] Basic auth for UI admin routes and Decision Service (minimal, optional if time)
-- [ ] Timeouts/retries on provider→MCP→Redis; simple rate limiting
+- [x] Decisions page: unified list (K8s/Terraform) with filters (source/result/time)
+- [x] Terraform evaluate sandbox on UI (form posting to `/api/opa/evaluate`)
+- [x] Basic auth for UI admin routes and Decision Service (minimal, optional if time)
+- [x] Timeouts/retries on provider→MCP→Redis; simple rate limiting
 - [ ] Close Week 2: stabilize explicit DENY (Provider URL/caBundle) with 3x run proof
-- [ ] Minimal smoke tests in CI for `/evaluate`, `/decisions`, and UI health
+- [x] Minimal smoke tests in CI for `/evaluate`, `/decisions`, and UI health
 
 Deliverables:
 - Toggle constraint from UI reflects in cluster
