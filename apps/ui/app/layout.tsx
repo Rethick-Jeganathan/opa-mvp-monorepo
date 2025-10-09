@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'OPA MVP Dashboard',
-  description: 'Week 1 dashboard for MCP, Gatekeeper, and CI visibility',
+  title: 'PolicyPulse',
+  description: 'PolicyPulse — Unified policy observability & evaluation',
 };
 
 import './globals.css';
@@ -13,8 +13,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-white/10 sticky top-0 backdrop-blur bg-black/30 z-50">
           <div className="container py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-cyan-400/20 border border-cyan-400/40" />
-              <h1 className="text-lg font-semibold">OPA MVP Dashboard</h1>
+              <img
+                src="/policypulse-logo.svg"
+                alt="PolicyPulse"
+                className="w-8 h-8 rounded"
+                width={32}
+                height={32}
+              />
+              <h1 className="text-lg font-semibold">PolicyPulse</h1>
             </div>
             <nav className="text-sm flex gap-4">
               <a className="text-cyan-300 hover:underline" href="/">Overview</a>

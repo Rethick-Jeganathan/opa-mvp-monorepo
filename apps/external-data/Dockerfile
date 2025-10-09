@@ -17,5 +17,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-EXPOSE 8080
+COPY package.json ./package.json
+
+# Expose both HTTP and HTTPS
+EXPOSE 8080 8443
+ENV PORT=8080
+ENV TLS_PORT=8443
+
 CMD ["node", "dist/index.js"]
