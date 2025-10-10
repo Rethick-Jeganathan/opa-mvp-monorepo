@@ -9,6 +9,26 @@ export default function ExternalDataPage() {
   const [lookupResult, setLookupResult] = useState<any>(null);
   const [lookupError, setLookupError] = useState<string>("");
 
+  function Tip({ label }: { label: string }) {
+    return (
+      <span className="relative inline-block group align-middle ml-2">
+        <span
+          aria-label={label}
+          className="cursor-help select-none text-cyan-300/80 border border-cyan-400/30 rounded px-1 text-[10px] leading-none"
+          tabIndex={0}
+        >
+          i
+        </span>
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute z-10 left-1/2 -translate-x-1/2 mt-2 w-64 text-xs rounded bg-black/90 border border-white/10 p-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition"
+        >
+          {label}
+        </span>
+      </span>
+    );
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -52,7 +72,10 @@ export default function ExternalDataPage() {
       <h1 className="text-2xl font-bold">External Data Provider</h1>
       
       <div className="card">
-        <h2 className="text-lg font-semibold mb-3">Provider Health</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          Provider Health
+          <Tip label="Health information from the External Data Provider, including keys count. Uses HTTP on :8080 (and HTTPS on :8443)." />
+        </h2>
         {healthError && <div className="badge badge-err mb-3">{healthError}</div>}
         {!healthError && health && (
           <pre className="text-xs whitespace-pre-wrap bg-black/30 p-3 rounded border border-white/10">
@@ -62,7 +85,10 @@ export default function ExternalDataPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-lg font-semibold mb-3">Lookup Test</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          Lookup Test
+          <Tip label="Query the provider with comma-separated keys to retrieve namespace→environment mappings (demo/dev/prod)." />
+        </h2>
         <div className="space-y-3">
           <div>
             <label className="block text-sm mb-1">Keys (comma-separated):</label>
@@ -90,7 +116,10 @@ export default function ExternalDataPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-lg font-semibold mb-3">About</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          About
+          <Tip label="Explains the MVP provider behavior and how Gatekeeper uses it during admission evaluation." />
+        </h2>
         <div className="text-sm space-y-2">
           <p>The External Data Provider enables Gatekeeper constraints to query external systems during admission control.</p>
           <p><strong>MVP Implementation:</strong> In-memory namespace → environment mapping (demo→dev, dev→dev, prod→prod)</p>

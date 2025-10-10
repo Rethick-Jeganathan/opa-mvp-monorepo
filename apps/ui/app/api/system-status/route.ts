@@ -45,7 +45,7 @@ export async function GET() {
     } else {
       lsStatus = "warn";
       lsError = `HTTP ${h.status}`;
-    }
+    }0
   } catch (e1) {
     try {
       // Fallback: ping root

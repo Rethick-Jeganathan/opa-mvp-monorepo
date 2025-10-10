@@ -29,6 +29,12 @@ services:
       - redis
     ports:
       - '9200:9200'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9200/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
 
   external-data:
     build: ./apps/external-data
@@ -41,6 +47,12 @@ services:
     ports:
       - '8080:8080'
       - '8443:8443'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
 
   opa-tfc:
     build: ./apps/opa-tfc
@@ -48,6 +60,12 @@ services:
       - PORT=9300
     ports:
       - '9300:9300'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9300/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
 
   ui:
     build: ./apps/ui

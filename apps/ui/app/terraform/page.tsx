@@ -20,6 +20,27 @@ export default function TerraformPage() {
   const [evalResult, setEvalResult] = useState<any>(null);
   const [evalErr, setEvalErr] = useState<string>("");
 
+  // Simple, accessible tooltip helper
+  function Tip({ label }: { label: string }) {
+    return (
+      <span className="relative inline-block group align-middle ml-2">
+        <span
+          aria-label={label}
+          className="cursor-help select-none text-cyan-300/80 border border-cyan-400/30 rounded px-1 text-[10px] leading-none"
+          tabIndex={0}
+        >
+          i
+        </span>
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute z-10 left-1/2 -translate-x-1/2 mt-2 w-64 text-xs rounded bg-black/90 border border-white/10 p-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition"
+        >
+          {label}
+        </span>
+      </span>
+    );
+  }
+
   async function refresh() {
     try {
       const h = await fetch("/api/opa/healthz", { cache: "no-store" });
@@ -61,7 +82,10 @@ export default function TerraformPage() {
       <h1 className="text-2xl font-bold">Terraform Decisions</h1>
 
       <section className="card">
-        <h2 className="text-lg font-semibold mb-2">Decision Service Health</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          Decision Service Health
+          <Tip label="Raw /healthz output from the OPA Decision Service backing Terraform evaluations." />
+        </h2>
         {healthErr && <div className="badge badge-err mb-2">{healthErr}</div>}
         {!healthErr && health && (
           <pre className="text-xs whitespace-pre-wrap bg-black/30 p-3 rounded border border-white/10">
@@ -71,7 +95,10 @@ export default function TerraformPage() {
       </section>
 
       <section className="card">
-        <h2 className="text-lg font-semibold mb-2">Evaluate (POST /evaluate)</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          Evaluate (POST /evaluate)
+          <Tip label="Send an input document to /evaluate. Use presets for quick PASS/FAIL demonstrations; results are stored and visible below." />
+        </h2>
         <div className="grid gap-3">
           <div className="flex items-center gap-2">
             <span className="opacity-70 text-sm">Presets:</span>
@@ -134,7 +161,10 @@ export default function TerraformPage() {
       </section>
 
       <section className="card">
-        <h2 className="text-lg font-semibold mb-2">Recent Decisions</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          Recent Decisions
+          <Tip label="Latest Terraform decisions recorded by the service. Use this to verify PASS/FAIL runs and messages." />
+        </h2>
         <ul className="text-sm space-y-1">
           {decisions.map((d: any) => (
             <li key={d.id} className="border-b border-white/10 pb-1">

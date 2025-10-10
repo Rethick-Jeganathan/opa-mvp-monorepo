@@ -27,3 +27,9 @@ Thumbs.db
 coverage/
 *.tgz
 *.tar.gz
+
+# Local dev runtime state
+.devpids.json
+
+# Local SQLite data (OPA decisions)
+apps/opa-tfc/data/*.db

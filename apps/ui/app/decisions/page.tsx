@@ -19,6 +19,27 @@ export default function DecisionsPage() {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [query, setQuery] = useState<string>("");
 
+  // Accessible tooltip helper
+  function Tip({ label }: { label: string }) {
+    return (
+      <span className="relative inline-block group align-middle ml-2">
+        <span
+          aria-label={label}
+          className="cursor-help select-none text-cyan-300/80 border border-cyan-400/30 rounded px-1 text-[10px] leading-none"
+          tabIndex={0}
+        >
+          i
+        </span>
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute z-10 left-1/2 -translate-x-1/2 mt-2 w-64 text-xs rounded bg-black/90 border border-white/10 p-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition"
+        >
+          {label}
+        </span>
+      </span>
+    );
+  }
+
   async function refresh() {
     setError("");
     try {
@@ -58,6 +79,10 @@ export default function DecisionsPage() {
       <h1 className="text-2xl font-bold">Decisions</h1>
 
       <section className="card">
+        <h2 className="text-lg font-semibold mb-2">
+          Filters
+          <Tip label="Refine decisions by result (PASS/FAIL), source, and free-text search across subject/policy/message." />
+        </h2>
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex items-center gap-2">
             <span className="opacity-70 text-sm">Result:</span>
@@ -105,6 +130,10 @@ export default function DecisionsPage() {
       </section>
 
       <section className="card">
+        <h2 className="text-lg font-semibold mb-2">
+          Decision List
+          <Tip label="Table of recorded decisions. Click Refresh to fetch latest items from the Decision Service." />
+        </h2>
         {error && <div className="badge badge-err mb-2">{error}</div>}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
