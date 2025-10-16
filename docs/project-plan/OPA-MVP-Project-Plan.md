@@ -150,13 +150,33 @@ Dependencies:
 - [ ] Close Week 2: stabilize explicit DENY (Provider URL/caBundle) with 3x run proof
 - [x] Minimal smoke tests in CI for `/evaluate`, `/decisions`, and UI health
 
+- [ ] Cloud connectivity smoke tests (AWS + GCP)
+  - AWS (real account toggle):
+    - Configure credentials locally: `AWS_PROFILE` or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` (+ `AWS_REGION`).
+    - For Docker Compose: pass through AWS env to `mcp-server` service.
+    - Add toggle env: `MCP_AWS_MODE=aws` (vs `localstack`) and update MCP to probe real AWS.
+    - Implement probe in MCP (minimal): STS `GetCallerIdentity` and (optional) S3 `ListBuckets`; expose `/cloud/aws/health` returning `{ accountId, arn, region, ok }`.
+    - UI: add "AWS Connectivity" tile hitting `/api/mcp/cloud/aws/health` and show account/region.
+    - Record one sample decision by calling OPA `/evaluate` with an AWS-like input (policy already exists) to prove E2E.
+  - GCP (service account):
+    - Obtain a service account JSON with Viewer role; set `GOOGLE_APPLICATION_CREDENTIALS` and `GCP_PROJECT_ID` locally (and pass through in Compose if used).
+    - Add toggle env: `MCP_GCP_MODE=gcp` and update MCP to probe GCP via Cloud Resource Manager `projects.get` or `projects.list`.
+    - Expose `/cloud/gcp/health` returning `{ projectId, email, ok }`.
+    - UI: add "GCP Connectivity" tile hitting `/api/mcp/cloud/gcp/health` and surface project/email.
+    - Record one sample decision by calling OPA `/evaluate` with a GCP-like input (stub policy) to prove E2E.
+
 Deliverables:
 - Toggle constraint from UI reflects in cluster
 - Ad-hoc evaluation returns allow/deny with reasons
 - Auth required for UI routes; basic test suite passes
+- Real cloud connectivity proven:
+  - AWS: `/cloud/aws/health` returns ok with account/ARN; sample OPA decision logged
+  - GCP: `/cloud/gcp/health` returns ok with project/email; sample OPA decision logged
 
 Dependencies:
 - K8s RBAC configured; API proxy
+- AWS account creds (profile or env vars) with STS access; network egress to AWS
+- GCP project + service account JSON (Viewer); `gcloud` SDK optional for local verification
 
 ### Week 5 — Polish, Docs, Packaging, Demo (2025-10-13 → 2025-10-17)
 - [ ] UX polish: empty/loading states, toasts, responsive layouts
@@ -194,6 +214,10 @@ Dependencies:
 | W4-2 | Ad-hoc evaluator | TBD | 2025-10-07 | 2025-10-09 |  |  | Not Started | 0% |
 | W4-3 | Auth, limits, retries | TBD | 2025-10-06 | 2025-10-09 |  |  | Not Started | 0% |
 | W4-4 | E2E tests | TBD | 2025-10-08 | 2025-10-10 |  |  | Not Started | 0% |
+| W4-5 | AWS connectivity smoke test (MCP + UI tile + sample decision) | TBD | 2025-10-06 | 2025-10-09 |  |  | Not Started | 0% |
+| W4-6 | GCP connectivity smoke test (MCP + UI tile + sample decision) | TBD | 2025-10-07 | 2025-10-10 |  |  | Not Started | 0% |
+| W4-7 | Compose/env wiring for cloud toggles/secrets | TBD | 2025-10-06 | 2025-10-08 |  |  | Not Started | 0% |
+| W4-8 | Docs: cloud setup (AWS/GCP) and smoke script | TBD | 2025-10-08 | 2025-10-10 |  |  | Not Started | 0% |
 | W5-1 | UX polish + charts | TBD | 2025-10-13 | 2025-10-15 |  |  | Not Started | 0% |
 | W5-2 | Compose/Helm packaging | TBD | 2025-10-13 | 2025-10-16 |  |  | Not Started | 0% |
 | W5-3 | Docs + demo script | TBD | 2025-10-14 | 2025-10-17 |  |  | Not Started | 0% |
