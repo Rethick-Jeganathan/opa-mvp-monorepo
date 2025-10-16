@@ -165,6 +165,28 @@ Dependencies:
     - UI: add "GCP Connectivity" tile hitting `/api/mcp/cloud/gcp/health` and surface project/email.
     - Record one sample decision by calling OPA `/evaluate` with a GCP-like input (stub policy) to prove E2E.
 
+- [ ] Compliance framework/policy library (MVP subset)
+  - Policy catalog scaffolding:
+    - Create `policy/frameworks/` with an index file mapping frameworks → controls → Rego packages and metadata (ID/title/severity/mappings).
+    - Initial frameworks: HIPAA, PCI DSS, FedRAMP, SOX; include crosswalk mapping to FISMA/NIST 800-53 (MVP: ≥5 controls each).
+  - Control implementation (Rego):
+    - Add `policy/frameworks/{framework}/{control}.rego` with input schema and decision result `{ pass, message, refs }`.
+    - Add data metadata files for control mappings (e.g., NIST refs) under `policy/frameworks/{framework}/controls/*.yaml`.
+  - Evidence adapters:
+    - AWS: STS/IAM/S3 minimal reads (identity, password policy, public S3 ACLs) via MCP.
+    - GCP: CRM/IAM reads (project info, IAM bindings) via MCP.
+    - K8s: Namespaces/Deployments/PodSecurityContext via UI proxy.
+    - Terraform: Plan JSON ingestion in Decision Service.
+  - Evaluation pipeline:
+    - CLI/UI triggers framework run → assemble evidence per adapter → evaluate all selected controls in OPA.
+    - Compute compliance score (% passed) and per-control results; persist to `compliance_results` (SQLite).
+  - UI surfaces:
+    - Framework picker and Run button; results page with summary %, pass/fail counts, and per-control details.
+    - Export CSV/JSON of control results and a short executive summary.
+  - Packaging/CI:
+    - Build policy bundles per framework; publish to GHCR and pull in services.
+    - Nightly CI smoke against LocalStack/GCP stub to prevent regressions.
+
 Deliverables:
 - Toggle constraint from UI reflects in cluster
 - Ad-hoc evaluation returns allow/deny with reasons
@@ -172,11 +194,16 @@ Deliverables:
 - Real cloud connectivity proven:
   - AWS: `/cloud/aws/health` returns ok with account/ARN; sample OPA decision logged
   - GCP: `/cloud/gcp/health` returns ok with project/email; sample OPA decision logged
+- Compliance library MVP available:
+  - Catalog covering HIPAA, PCI DSS, FedRAMP, SOX (MVP subset ≥20 controls total) with Rego + metadata; FISMA/NIST 800-53 crosswalk documented
+  - UI framework selection with compliance % and export (CSV/JSON)
+  - Results stored in SQLite `compliance_results`
 
 Dependencies:
 - K8s RBAC configured; API proxy
 - AWS account creds (profile or env vars) with STS access; network egress to AWS
 - GCP project + service account JSON (Viewer); `gcloud` SDK optional for local verification
+- OPA/OPA build toolchain; GHCR access for policy bundle publish/pull
 
 ### Week 5 — Polish, Docs, Packaging, Demo (2025-10-13 → 2025-10-17)
 - [ ] UX polish: empty/loading states, toasts, responsive layouts
@@ -218,6 +245,12 @@ Dependencies:
 | W4-6 | GCP connectivity smoke test (MCP + UI tile + sample decision) | TBD | 2025-10-07 | 2025-10-10 |  |  | Not Started | 0% |
 | W4-7 | Compose/env wiring for cloud toggles/secrets | TBD | 2025-10-06 | 2025-10-08 |  |  | Not Started | 0% |
 | W4-8 | Docs: cloud setup (AWS/GCP) and smoke script | TBD | 2025-10-08 | 2025-10-10 |  |  | Not Started | 0% |
+| W4-9 | Compliance catalog scaffolding (framework index + metadata) | TBD | 2025-10-06 | 2025-10-07 |  |  | Not Started | 0% |
+| W4-10 | HIPAA starter controls (≥5) | TBD | 2025-10-07 | 2025-10-08 |  |  | Not Started | 0% |
+| W4-11 | PCI DSS starter controls (≥5) | TBD | 2025-10-07 | 2025-10-08 |  |  | Not Started | 0% |
+| W4-12 | FedRAMP + SOX mappings; NIST 800-53 crosswalk | TBD | 2025-10-08 | 2025-10-09 |  |  | Not Started | 0% |
+| W4-13 | UI: framework picker + results (compliance %) | TBD | 2025-10-08 | 2025-10-09 |  |  | Not Started | 0% |
+| W4-14 | CI: build/publish bundles per framework; nightly smoke | TBD | 2025-10-09 | 2025-10-10 |  |  | Not Started | 0% |
 | W5-1 | UX polish + charts | TBD | 2025-10-13 | 2025-10-15 |  |  | Not Started | 0% |
 | W5-2 | Compose/Helm packaging | TBD | 2025-10-13 | 2025-10-16 |  |  | Not Started | 0% |
 | W5-3 | Docs + demo script | TBD | 2025-10-14 | 2025-10-17 |  |  | Not Started | 0% |
