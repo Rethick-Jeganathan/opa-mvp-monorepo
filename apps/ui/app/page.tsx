@@ -13,6 +13,8 @@ type SystemStatus = {
 export default function HomePage() {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [awsCloud, setAwsCloud] = useState<any | null>(null);
+  const [gcpCloud, setGcpCloud] = useState<any | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +33,21 @@ export default function HomePage() {
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [a, g] = await Promise.all([
+          fetch("/api/mcp/cloud/aws", { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+          fetch("/api/mcp/cloud/gcp", { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+        ]);
+        setAwsCloud(a);
+        setGcpCloud(g);
+      } catch {
+        /* ignore */
+      }
+    })();
   }, []);
 
   const badge = (s: Status) =>
@@ -123,6 +140,45 @@ export default function HomePage() {
 
       <section className="card">
         <h2 className="text-lg font-semibold mb-2">
+          Cloud Connectivity
+          <Tip label="Quick check that AWS and GCP credentials are wired. Configure AWS_PROFILE/AWS keys and GCP service account JSON." />
+        </h2>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <div>AWS</div>
+            <span className={badge(awsCloud?.ok ? "ok" : awsCloud ? "warn" : "unknown")}>
+              {awsCloud?.ok ? "ok" : awsCloud ? "warn" : "unknown"}
+            </span>
+          </div>
+          {awsCloud && !awsCloud.ok && (
+            <pre className="text-xs text-rose-300/80 whitespace-pre-wrap">{awsCloud.error || ""}</pre>
+          )}
+          {awsCloud?.ok && (
+            <div className="opacity-80">
+              <div className="text-xs">Account: {awsCloud.accountId} — Region: {awsCloud.region}</div>
+              <div className="text-xs truncate">ARN: {awsCloud.arn}</div>
+            </div>
+          )}
+          <div className="flex items-center justify-between pt-2">
+            <div>GCP</div>
+            <span className={badge(gcpCloud?.ok ? "ok" : gcpCloud ? "warn" : "unknown")}>
+              {gcpCloud?.ok ? "ok" : gcpCloud ? "warn" : "unknown"}
+            </span>
+          </div>
+          {gcpCloud && !gcpCloud.ok && (
+            <pre className="text-xs text-rose-300/80 whitespace-pre-wrap">{gcpCloud.error || ""}</pre>
+          )}
+          {gcpCloud?.ok && (
+            <div className="opacity-80">
+              <div className="text-xs">Project: {gcpCloud.projectId}</div>
+              <div className="text-xs">Email: {gcpCloud.email}</div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="card">
+        <h2 className="text-lg font-semibold mb-2">
           Quick Links
           <Tip label="Shortcuts to common PolicyPulse areas: Decisions, Terraform evaluate, MCP Explorer, External Data Provider, Kubernetes resources, and CI." />
         </h2>
@@ -150,6 +206,11 @@ export default function HomePage() {
           <li>
             <a className="text-cyan-300 hover:underline" href="/k8s">
               ☸️ Kubernetes Resources
+            </a>
+          </li>
+          <li>
+            <a className="text-cyan-300 hover:underline" href="/compliance">
+              🛡️ Compliance (framework run)
             </a>
           </li>
           <li>
